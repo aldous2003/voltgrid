@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltGrid — Live Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body class="dashboard-page">
+
+  <!-- ── NAV ── -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">VOLT<span class="logo-accent">GRID</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      </div>
+      <div class="nav-status" id="nav-status">
+        <span class="status-dot green" id="nav-dot"></span>
+        <span id="nav-status-text">ONLINE</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── DASHBOARD LAYOUT ── -->
+  <main class="dash-main">
+
+    <!-- ── SYSTEM STATUS BANNER ── -->
+    <div class="status-banner" id="status-banner">
+      <div class="sb-left">
+        <div class="sb-dot-wrap">
+          <div class="live-indicator" id="live-indicator"></div>
+        </div>
+        <div>
+          <div class="sb-title" id="sb-title">SYSTEM ONLINE</div>
+          <div class="sb-sub" id="sb-sub">Last data received: <span id="last-seen">just now</span></div>
+        </div>
+      </div>
+      <div class="sb-right">
+        <div class="sb-stat"><span class="sb-stat-val" id="uptime-val">00:00:00</span><span
+            class="sb-stat-label">Session Uptime</span></div>
+        <div class="sb-stat"><span class="sb-stat-val" id="update-count">0</span><span class="sb-stat-label">Data
+            Updates</span></div>
+        <div class="sb-stat"><span class="sb-stat-val" id="active-rooms-count">2</span><span
+            class="sb-stat-label">Active Rooms</span></div>
+      </div>
+    </div>
+
+    <!-- ── TELEMETRY GRID ── -->
+    <div class="dash-section-label">⚡ LIVE ELECTRICAL MEASUREMENTS</div>
+    <div class="telemetry-grid">
+      <div class="t-card" id="tc-voltage">
+        <div class="t-label">VOLTAGE</div>
+        <div class="t-value"><span id="t-voltage">—</span><span class="t-unit">V</span></div>
+        <div class="t-bar-wrap">
+          <div class="t-bar" id="bar-voltage"></div>
+        </div>
+        <div class="t-sub">Nominal: 220V</div>
+      </div>
+      <div class="t-card" id="tc-current">
+        <div class="t-label">CURRENT</div>
+        <div class="t-value"><span id="t-current">—</span><span class="t-unit">A</span></div>
+        <div class="t-bar-wrap">
+          <div class="t-bar" id="bar-current"></div>
+        </div>
+        <div class="t-sub">Max: 20A</div>
+      </div>
+      <div class="t-card" id="tc-power">
+        <div class="t-label">ACTIVE POWER</div>
+        <div class="t-value"><span id="t-power">—</span><span class="t-unit">W</span></div>
+        <div class="t-bar-wrap">
+          <div class="t-bar" id="bar-power"></div>
+        </div>
+        <div class="t-sub">Max: 4400W</div>
+      </div>
+      <div class="t-card" id="tc-energy">
+        <div class="t-label">ENERGY</div>
+        <div class="t-value"><span id="t-energy">—</span><span class="t-unit">kWh</span></div>
+        <div class="t-bar-wrap">
+          <div class="t-bar" id="bar-energy"></div>
+        </div>
+        <div class="t-sub">Session total</div>
+      </div>
+      <div class="t-card" id="tc-freq">
+        <div class="t-label">FREQUENCY</div>
+        <div class="t-value"><span id="t-freq">—</span><span class="t-unit">Hz</span></div>
+        <div class="t-bar-wrap">
+          <div class="t-bar" id="bar-freq"></div>
+        </div>
+        <div class="t-sub">Nominal: 60Hz</div>
+      </div>
+      <div class="t-card" id="tc-pf">
+        <div class="t-label">POWER FACTOR</div>
+        <div class="t-value"><span id="t-pf">—</span><span class="t-unit">PF</span></div>
+        <div class="t-bar-wrap">
+          <div class="t-bar" id="bar-pf"></div>
+        </div>
+        <div class="t-sub">Target: ≥ 0.95</div>
+      </div>
+    </div>
+
+    <!-- ── ROOM CARDS + EVENT LOG ── -->
+    <div class="mid-grid">
+      <div>
+        <div class="dash-section-label">🏠 ROOM STATUS</div>
+        <div class="room-grid" id="room-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div>
+        <div class="dash-section-label">📋 SYSTEM EVENT LOG</div>
+        <div class="event-log-wrap">
+          <div class="event-log" id="event-log">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHARTS ── -->
+    <div class="dash-section-label">📈 ENERGY ANALYTICS</div>
+    <div class="charts-grid">
+
+      <div class="chart-card wide">
+        <div class="chart-card-header">
+          <div class="chart-title" id="chart-period-title">Daily Energy Consumption (kWh)</div>
+          <div class="chart-tabs" role="tablist" aria-label="Energy analysis period">
+            <button class="chart-tab active" id="tab-daily" data-period="daily" onclick="switchAnalyticsPeriod('daily')"
+              role="tab" aria-selected="true">Daily</button>
+            <button class="chart-tab" id="tab-weekly" data-period="weekly" onclick="switchAnalyticsPeriod('weekly')"
+              role="tab" aria-selected="false">Weekly</button>
+            <button class="chart-tab" id="tab-monthly" data-period="monthly" onclick="switchAnalyticsPeriod('monthly')"
+              role="tab" aria-selected="false">Monthly</button>
+            <button class="chart-tab" id="tab-yearly" data-period="yearly" onclick="switchAnalyticsPeriod('yearly')"
+              role="tab" aria-selected="false">Yearly</button>
+          </div>
+        </div>
+        <canvas id="chart-daily" height="180"></canvas>
+      </div>
+
+    </div>
+
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">⚡ VOLTGRID</div>
+      <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase · Engineering Project Demo
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/firebase-config.js"></script>
+  <script src="components/roomCard.js"></script>
+  <script src="components/statusIndicator.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+
+</html>

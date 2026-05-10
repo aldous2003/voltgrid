@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltGrid — IoT Prepaid Electricity Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body class="home-page">
+
+  <!-- ── NAV ── -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">VOLT<span class="logo-accent">GRID</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link active">Home</a>
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+      </div>
+      <a href="dashboard.html" class="btn-launch">
+        <span class="btn-dot"></span> Live Dashboard
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span> System Active — Live Demo
+      </div>
+      <h1 class="hero-title">
+        Residential IoT <br>
+        <span class="title-accent">Prepaid</span> Electricity <br>
+        Monitoring System
+      </h1>
+      <p class="hero-desc">
+        Real-time telemetry from ESP32-powered energy meters — voltage, current,
+        power and credit balance streamed live to Firebase and displayed here.
+      </p>
+      <div class="hero-actions">
+        <a href="dashboard.html" class="btn-primary">Open Live Dashboard →</a>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── SYSTEM OVERVIEW ── -->
+  <section class="section" id="overview">
+    <div class="container">
+      <div class="section-label">PROJECT OVERVIEW</div>
+      <h2 class="section-title">What is VoltGrid?</h2>
+      <p class="section-desc">
+        VoltGrid is an embedded IoT system that provides prepaid electricity metering for multi-room environments.
+        Residents load credits via coin slot, and the ESP32 monitors real-time consumption — automatically cutting
+        off the relay when credit runs out.
+      </p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Real-Time Metering</h3>
+          <p>PZEM-004T measures voltage, current, power, frequency and energy every second.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💳</div>
+          <h3>Coin-Based Top-Up</h3>
+          <p>Residents insert coins to load credit. The system tracks balance and remaining kWh.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔁</div>
+          <h3>Relay Control</h3>
+          <p>Electricity is automatically disconnected when credit reaches zero. Manual override available.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📡</div>
+          <h3>Firebase Sync</h3>
+          <p>All data is published to Firebase in real-time, powering this monitoring dashboard.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🖥️</div>
+          <h3>LCD + Keypad UI</h3>
+          <p>On-device interface lets users check balance, select rooms, and interact with the system.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Live Analytics</h3>
+          <p>Charts show power vs time, daily and weekly energy consumption for each room.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- ── LIVE STATUS PREVIEW ── -->
+  <section class="section dark-section">
+    <div class="container center-content">
+      <div class="section-label">SYSTEM STATUS</div>
+      <h2 class="section-title">System is Live</h2>
+      <div class="live-status-banner">
+        <div class="live-dot-big"></div>
+        <div class="live-status-text">
+          <div class="live-big-text">ONLINE</div>
+          <div id="last-seen-home" class="live-sub">Last data received: just now</div>
+        </div>
+      </div>
+      <a href="dashboard.html" class="btn-primary large">Open Full Dashboard →</a>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">⚡ VOLTGRID</div>
+      <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase · Engineering Project Demo
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/firebase-config.js"></script>
+  <script>
+    // Update last seen
+    function updateLastSeen() {
+      document.getElementById('last-seen-home').textContent = 'Last data received: just now';
+    }
+    setInterval(updateLastSeen, 2000);
+    updateLastSeen();
+  </script>
+</body>
+
+</html>
