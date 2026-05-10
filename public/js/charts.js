@@ -8,6 +8,7 @@
  *                       Supports Daily / Weekly / Monthly / Yearly tabs
  *                       Role-aware: shows all rooms for admin,
  *                       only the user's room for user role.
+ *                       Dynamic: supports any number of rooms.
  * ─────────────────────────────────────────────────────────
  */
 
@@ -17,11 +18,19 @@ Chart.defaults.borderColor      = "#1e3358";
 Chart.defaults.font.family      = "'Space Mono', monospace";
 Chart.defaults.font.size        = 11;
 
-const CHART_GREEN  = "#00e676";
-const CHART_BLUE   = "#4fc3f7";
-const CHART_ACCENT = "#00b4ff";
-const CHART_YELLOW = "#ffc107";
-const CHART_RED    = "#ff3d3d";
+// ── Color palette for room datasets ──────────────────────
+const CHART_COLORS = [
+  "rgba(0,180,255,0.65)",
+  "rgba(0,230,118,0.65)",
+  "rgba(255,193,7,0.65)",
+  "rgba(255,87,34,0.65)",
+  "rgba(156,39,176,0.65)",
+  "rgba(0,188,212,0.65)",
+  "rgba(255,61,61,0.65)",
+  "rgba(76,175,80,0.65)",
+  "rgba(233,30,99,0.65)",
+  "rgba(121,85,72,0.65)"
+];
 
 // ── Period metadata ──────────────────────────────────────
 const PERIOD_META = {
@@ -63,42 +72,45 @@ function initDailyChart(data) {
   });
 }
 
+/**
+ * Build chart datasets dynamically based on rooms in the data.
+ * Supports any number of rooms (room1, room2, room3, ...).
+ */
 function buildAnalyticsData(data) {
-  // Determine role from global session variables (set in dashboard.js)
   const isAdmin = (typeof IS_ADMIN !== 'undefined') ? IS_ADMIN : true;
   const userRoom = (typeof USER_ROOM !== 'undefined') ? USER_ROOM : null;
 
+  // Discover which rooms exist in the data
+  const roomIds = [];
+  if (data.length > 0) {
+    const sample = data[0];
+    Object.keys(sample).forEach(key => {
+      const match = key.match(/^room(\d+)$/);
+      if (match) roomIds.push(parseInt(match[1]));
+    });
+    roomIds.sort((a, b) => a - b);
+  }
+
   if (isAdmin) {
-    // Admin: show both rooms
+    // Admin: show all rooms
     return {
       labels: data.map(d => d.label),
-      datasets: [
-        {
-          label: "Room 1",
-          data: data.map(d => d.room1),
-          backgroundColor: "rgba(0,180,255,0.65)",
-          borderRadius: 4
-        },
-        {
-          label: "Room 2",
-          data: data.map(d => d.room2),
-          backgroundColor: "rgba(0,230,118,0.65)",
-          borderRadius: 4
-        }
-      ]
+      datasets: roomIds.map((id, idx) => ({
+        label: `Room ${id}`,
+        data: data.map(d => d[`room${id}`] || 0),
+        backgroundColor: CHART_COLORS[idx % CHART_COLORS.length],
+        borderRadius: 4
+      }))
     };
   } else {
     // User: show only their room
-    const roomKey = `room${userRoom}`;
-    const roomLabel = `Room ${userRoom}`;
-    const color = userRoom === 1 ? "rgba(0,180,255,0.65)" : "rgba(0,230,118,0.65)";
-
+    const color = CHART_COLORS[(userRoom - 1) % CHART_COLORS.length];
     return {
       labels: data.map(d => d.label),
       datasets: [
         {
-          label: roomLabel,
-          data: data.map(d => d[roomKey]),
+          label: `Room ${userRoom}`,
+          data: data.map(d => d[`room${userRoom}`] || 0),
           backgroundColor: color,
           borderRadius: 4
         }
@@ -109,7 +121,7 @@ function buildAnalyticsData(data) {
 
 /**
  * Update analytics chart with fresh data array.
- * @param {Array} data  — [{label, room1, room2}, ...]
+ * @param {Array} data  — [{label, room1, room2, ...}, ...]
  */
 function updateDailyChart(data) {
   if (!analyticsChart) return;
@@ -119,7 +131,6 @@ function updateDailyChart(data) {
 
 /**
  * Switch the analytics chart to a different time period.
- * Called by the tab buttons in dashboard.html.
  * @param {'daily'|'weekly'|'monthly'|'yearly'} period
  */
 function switchAnalyticsPeriod(period) {

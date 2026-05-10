@@ -10,6 +10,7 @@
  *   - Update telemetry, room cards, event log, charts
  *   - Drive uptime counter and update counter
  *   - Role-aware: filters data based on user session
+ *   - Dynamic rooms: loads room configs from localStorage
  * ─────────────────────────────────────────────────────────
  */
 
@@ -17,6 +18,55 @@
 const CURRENT_SESSION = (typeof VoltAuth !== 'undefined') ? VoltAuth.getSession() : null;
 const IS_ADMIN = !CURRENT_SESSION || CURRENT_SESSION.role === 'admin';
 const USER_ROOM = CURRENT_SESSION ? CURRENT_SESSION.room : null; // null for admin
+
+// ── Load dynamic room configs ────────────────────────────
+function loadRoomConfigs() {
+  if (typeof VoltAuth !== 'undefined' && VoltAuth.getRoomConfigs) {
+    return VoltAuth.getRoomConfigs();
+  }
+  // Fallback defaults
+  return [
+    { id: 1, name: "Room 1", credit: 73.20, remainingKwh: 6.80, relay: true, power: 1067.0, totalEnergy: 12.44 },
+    { id: 2, name: "Room 2", credit: 18.50, remainingKwh: 1.72, relay: true, power: 0,      totalEnergy: 8.91  }
+  ];
+}
+
+// ── Color palette for rooms ──────────────────────────────
+const ROOM_COLORS = [
+  "rgba(0,180,255,0.65)",
+  "rgba(0,230,118,0.65)",
+  "rgba(255,193,7,0.65)",
+  "rgba(255,87,34,0.65)",
+  "rgba(156,39,176,0.65)",
+  "rgba(0,188,212,0.65)",
+  "rgba(255,61,61,0.65)",
+  "rgba(76,175,80,0.65)"
+];
+
+// ── Generate demo analytics data for a set of rooms ──────
+function generateDemoAnalytics(rooms) {
+  const dayLabels   = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const weekLabels  = ["Wk 1", "Wk 2", "Wk 3", "Wk 4"];
+  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const yearLabels  = ["2021", "2022", "2023", "2024", "2025"];
+
+  function buildEntries(labels, baseMin, baseMax) {
+    return labels.map(label => {
+      const entry = { label };
+      rooms.forEach(room => {
+        entry[`room${room.id}`] = +(baseMin + Math.random() * (baseMax - baseMin)).toFixed(1);
+      });
+      return entry;
+    });
+  }
+
+  return {
+    dailyData:   buildEntries(dayLabels,   1.2, 5.2),
+    weeklyData:  buildEntries(weekLabels,  13, 26),
+    monthlyData: buildEntries(monthLabels, 58, 115),
+    yearlyData:  buildEntries(yearLabels,  800, 1250)
+  };
+}
 
 // ── Demo / Simulation State ──────────────────────────────
 const DEMO = {
@@ -28,52 +78,21 @@ const DEMO = {
   powerFactor: 0.99,
   relay:       true,
   selectedRoom: 1,
-
-  rooms: [
-    { id: 1, name: "Room 1", credit: 73.20, remainingKwh: 6.80, relay: true,  power: 1067.0, totalEnergy: 12.44 },
-    { id: 2, name: "Room 2", credit: 18.50, remainingKwh: 1.72, relay: true,  power: 0,      totalEnergy: 8.91  }
-  ],
-
-  dailyData: [
-    { label: "Mon", room1: 2.1, room2: 1.4 },
-    { label: "Tue", room1: 3.4, room2: 2.8 },
-    { label: "Wed", room1: 2.8, room2: 1.9 },
-    { label: "Thu", room1: 4.1, room2: 3.2 },
-    { label: "Fri", room1: 3.6, room2: 2.5 },
-    { label: "Sat", room1: 5.0, room2: 4.1 },
-    { label: "Sun", room1: 2.9, room2: 2.2 }
-  ],
-
-  weeklyData: [
-    { label: "Wk 1", room1: 18.2, room2: 14.6 },
-    { label: "Wk 2", room1: 22.4, room2: 17.3 },
-    { label: "Wk 3", room1: 19.8, room2: 15.9 },
-    { label: "Wk 4", room1: 24.1, room2: 19.2 }
-  ],
-
-  monthlyData: [
-    { label: "Jan", room1: 81.4, room2: 64.2 },
-    { label: "Feb", room1: 74.8, room2: 59.1 },
-    { label: "Mar", room1: 88.3, room2: 70.5 },
-    { label: "Apr", room1: 91.2, room2: 73.8 },
-    { label: "May", room1: 95.6, room2: 78.1 },
-    { label: "Jun", room1: 102.1, room2: 84.3 },
-    { label: "Jul", room1: 98.7, room2: 81.2 },
-    { label: "Aug", room1: 104.5, room2: 86.9 },
-    { label: "Sep", room1: 89.3, room2: 72.4 },
-    { label: "Oct", room1: 83.6, room2: 67.8 },
-    { label: "Nov", room1: 77.9, room2: 62.3 },
-    { label: "Dec", room1: 110.2, room2: 91.5 }
-  ],
-
-  yearlyData: [
-    { label: "2021", room1: 1020.5, room2: 812.4 },
-    { label: "2022", room1: 1145.8, room2: 924.3 },
-    { label: "2023", room1: 1089.2, room2: 876.5 },
-    { label: "2024", room1: 1198.4, room2: 958.1 },
-    { label: "2025", room1: 1087.6, room2: 869.3 }
-  ]
+  rooms: []
 };
+
+// Initialize rooms and analytics from stored configs
+function initDemoState() {
+  const configs = loadRoomConfigs();
+  DEMO.rooms = configs.map(r => ({ ...r }));
+  const analytics = generateDemoAnalytics(DEMO.rooms);
+  DEMO.dailyData   = analytics.dailyData;
+  DEMO.weeklyData  = analytics.weeklyData;
+  DEMO.monthlyData = analytics.monthlyData;
+  DEMO.yearlyData  = analytics.yearlyData;
+}
+
+initDemoState();
 
 // ── Runtime State ────────────────────────────────────────
 let updateCount    = 0;
@@ -134,8 +153,6 @@ function updateTelemetry(data) {
     const bar = document.getElementById(id);
     if (bar) bar.style.width = Math.min(100, Math.max(0, ratio * 100)).toFixed(1) + "%";
   }
-
-
 
   // increment counter
   updateCount++;
@@ -241,18 +258,24 @@ function runDemoSimulation() {
   DEMO.voltage     = fluctuate(220, 4);
   DEMO.current     = fluctuate(4.85, 0.8);
   DEMO.power       = +(DEMO.voltage * DEMO.current * DEMO.powerFactor).toFixed(1);
-  DEMO.energy      = +(DEMO.energy + DEMO.power / 3600000).toFixed(6); // add each second
+  DEMO.energy      = +(DEMO.energy + DEMO.power / 3600000).toFixed(6);
   DEMO.frequency   = fluctuate(60, 0.3);
   DEMO.powerFactor = Math.min(1, fluctuate(0.99, 0.04));
 
-  // Rooms: drain credit slowly
-  DEMO.rooms[0].power       = DEMO.power;
-  DEMO.rooms[0].credit      = Math.max(0, +(DEMO.rooms[0].credit - DEMO.power / 3600 / 10).toFixed(4));
-  DEMO.rooms[0].remainingKwh= Math.max(0, +(DEMO.rooms[0].credit / 10.75).toFixed(4));
-  DEMO.rooms[0].totalEnergy = DEMO.energy;
-
-  DEMO.rooms[1].credit      = Math.max(0, +(DEMO.rooms[1].credit - 0.001).toFixed(4));
-  DEMO.rooms[1].remainingKwh= Math.max(0, +(DEMO.rooms[1].credit / 10.75).toFixed(4));
+  // Simulate all rooms dynamically
+  DEMO.rooms.forEach((room, i) => {
+    if (i === 0) {
+      // Room 1: active with power draw
+      room.power       = DEMO.power;
+      room.credit      = Math.max(0, +(room.credit - DEMO.power / 3600 / 10).toFixed(4));
+      room.remainingKwh= Math.max(0, +(room.credit / 10.75).toFixed(4));
+      room.totalEnergy = DEMO.energy;
+    } else {
+      // Other rooms: slow credit drain
+      room.credit      = Math.max(0, +(room.credit - 0.001).toFixed(4));
+      room.remainingKwh= Math.max(0, +(room.credit / 10.75).toFixed(4));
+    }
+  });
 
   updateTelemetry({
     voltage:     DEMO.voltage,
@@ -282,14 +305,11 @@ function attachFirebaseListeners() {
     StatusIndicator.markDataReceived();
   });
 
-  // Room 1
-  listenToPath("/rooms/room1", data => {
-    updateRoomCard({ id: 1, name: "Room 1", ...data });
-  });
-
-  // Room 2
-  listenToPath("/rooms/room2", data => {
-    updateRoomCard({ id: 2, name: "Room 2", ...data });
+  // Listen to all rooms dynamically
+  DEMO.rooms.forEach(room => {
+    listenToPath(`/rooms/room${room.id}`, data => {
+      updateRoomCard({ id: room.id, name: room.name, ...data });
+    });
   });
 
   // Events (admin only)
@@ -305,6 +325,24 @@ function attachFirebaseListeners() {
   listenToPath("/analytics/daily", data => {
     if (data) updateDailyChart(Object.values(data));
   });
+}
+
+/**
+ * Reload rooms from localStorage and refresh the dashboard.
+ * Called by admin panel after adding a room.
+ */
+function reloadDashboardRooms() {
+  initDemoState();
+  // Clear existing room cards
+  const grid = document.getElementById("room-grid");
+  if (grid) grid.innerHTML = '';
+  // Re-render
+  updateAllRooms(DEMO.rooms);
+  // Refresh chart
+  if (typeof analyticsChart !== 'undefined' && analyticsChart) {
+    analyticsChart.data = buildAnalyticsData(DEMO.dailyData);
+    analyticsChart.update();
+  }
 }
 
 // ── Init ─────────────────────────────────────────────────

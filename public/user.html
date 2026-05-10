@@ -5,7 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VoltGrid — My Room Dashboard</title>
-  <meta name="description" content="VoltGrid User Dashboard — monitor your room's electricity usage and credit balance." />
+  <meta name="description"
+    content="VoltGrid User Dashboard — monitor your room's electricity usage and credit balance." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
@@ -151,7 +152,7 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-logo">⚡ VOLTGRID</div>
-      <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase · Engineering Project Demo
+      <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase
       </div>
     </div>
   </footer>
@@ -163,13 +164,16 @@
   <script src="js/charts.js"></script>
   <script src="js/dashboard.js"></script>
   <script>
-    // Auth guard — user role only
-    const session = VoltAuth.requireAuth(["user"]);
-    if (session) {
-      document.getElementById('nav-user-name').textContent = session.displayName;
-      document.getElementById('nav-role-text').textContent = 'Room ' + session.room + ' Dashboard';
-      document.getElementById('logout-btn').addEventListener('click', () => VoltAuth.logout());
-    }
+    // Initialize user database
+    VoltAuth.initUsers().then(() => {
+      // Auth guard — user role only
+      const session = VoltAuth.requireAuth(["user"]);
+      if (session) {
+        document.getElementById('nav-user-name').textContent = session.displayName;
+        document.getElementById('nav-role-text').textContent = 'Room ' + session.room + ' Dashboard';
+        document.getElementById('logout-btn').addEventListener('click', () => VoltAuth.logout());
+      }
+    });
   </script>
 </body>
 

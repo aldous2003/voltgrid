@@ -89,8 +89,11 @@
 
   <script src="js/auth.js"></script>
   <script>
-    // If already logged in, redirect to appropriate dashboard
-    VoltAuth.redirectIfLoggedIn();
+    // Initialize user database (hashes default passwords on first run)
+    VoltAuth.initUsers().then(() => {
+      // If already logged in, redirect to appropriate dashboard
+      VoltAuth.redirectIfLoggedIn();
+    });
 
     // ── Login Form Handler ──
     const form = document.getElementById('login-form');
@@ -119,9 +122,9 @@
       btn.classList.add('loading');
       btn.disabled = true;
 
-      // Simulate slight delay for UX
-      setTimeout(() => {
-        const result = VoltAuth.login(username, password);
+      // Small delay for UX, then async login
+      setTimeout(async () => {
+        const result = await VoltAuth.login(username, password);
 
         if (result.success) {
           btn.classList.remove('loading');

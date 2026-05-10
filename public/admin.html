@@ -161,12 +161,156 @@
     </div>
 
 
+    <!-- ── ADMIN PANEL ── -->
+    <div class="dash-section-label">🛡️ ADMIN PANEL</div>
+    <div class="admin-panel">
+
+      <!-- Room User Management -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">
+            <span class="admin-card-icon">🏠</span>
+            Room Access Management
+          </div>
+          <button class="admin-action-btn accent" id="btn-add-room">
+            <span>+ Add Room</span>
+          </button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="room-users-table">
+            <thead>
+              <tr>
+                <th>Room</th>
+                <th>Username</th>
+                <th>Display Name</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="room-users-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Security -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">
+            <span class="admin-card-icon">🔐</span>
+            Admin Security
+          </div>
+        </div>
+        <div class="admin-security-row">
+          <div class="admin-security-info">
+            <div class="admin-security-label">Admin Password</div>
+            <div class="admin-security-desc">Change the admin dashboard login password</div>
+          </div>
+          <button class="admin-action-btn accent" id="btn-change-admin-pw">
+            <span>Change Password</span>
+          </button>
+        </div>
+        <div class="admin-security-row">
+          <div class="admin-security-info">
+            <div class="admin-security-label">Reset All Credentials</div>
+            <div class="admin-security-desc">Reset all accounts to factory defaults</div>
+          </div>
+          <button class="admin-action-btn danger" id="btn-reset-defaults">
+            <span>Reset to Defaults</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
   </main>
+
+  <!-- ── CHANGE PIN MODAL ── -->
+  <div class="modal-overlay" id="modal-change-pin">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">🔑 Change Room PIN</h2>
+        <button class="modal-close" id="modal-pin-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info" id="modal-pin-room-info">Room 1</div>
+        <div class="modal-error" id="modal-pin-error" role="alert"></div>
+        <div class="modal-success" id="modal-pin-success" role="status"></div>
+        <form id="form-change-pin" autocomplete="off">
+          <input type="hidden" id="pin-room-id" />
+          <div class="form-group">
+            <label for="pin-new" class="form-label">NEW PIN</label>
+            <div class="form-input-wrap">
+              <span class="form-input-icon">🔒</span>
+              <input type="password" id="pin-new" class="form-input" placeholder="Enter new PIN (min 4 characters)"
+                minlength="4" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="pin-confirm" class="form-label">CONFIRM PIN</label>
+            <div class="form-input-wrap">
+              <span class="form-input-icon">🔒</span>
+              <input type="password" id="pin-confirm" class="form-input" placeholder="Confirm new PIN" minlength="4"
+                required />
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="modal-btn cancel" id="modal-pin-cancel">Cancel</button>
+            <button type="submit" class="modal-btn primary" id="modal-pin-submit">Update PIN</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CHANGE ADMIN PASSWORD MODAL ── -->
+  <div class="modal-overlay" id="modal-change-admin-pw">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">🔐 Change Admin Password</h2>
+        <button class="modal-close" id="modal-admin-pw-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-error" id="modal-admin-pw-error" role="alert"></div>
+        <div class="modal-success" id="modal-admin-pw-success" role="status"></div>
+        <form id="form-change-admin-pw" autocomplete="off">
+          <div class="form-group">
+            <label for="admin-pw-current" class="form-label">CURRENT PASSWORD</label>
+            <div class="form-input-wrap">
+              <span class="form-input-icon">🔒</span>
+              <input type="password" id="admin-pw-current" class="form-input" placeholder="Enter current password"
+                required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="admin-pw-new" class="form-label">NEW PASSWORD</label>
+            <div class="form-input-wrap">
+              <span class="form-input-icon">🔑</span>
+              <input type="password" id="admin-pw-new" class="form-input"
+                placeholder="Enter new password (min 6 characters)" minlength="6" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="admin-pw-confirm" class="form-label">CONFIRM NEW PASSWORD</label>
+            <div class="form-input-wrap">
+              <span class="form-input-icon">🔑</span>
+              <input type="password" id="admin-pw-confirm" class="form-input" placeholder="Confirm new password"
+                minlength="6" required />
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="modal-btn cancel" id="modal-admin-pw-cancel">Cancel</button>
+            <button type="submit" class="modal-btn primary" id="modal-admin-pw-submit">Update Password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-logo">⚡ VOLTGRID</div>
-      <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase · Engineering Project Demo
+      <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase
       </div>
     </div>
   </footer>
@@ -178,11 +322,196 @@
   <script src="js/charts.js"></script>
   <script src="js/dashboard.js"></script>
   <script>
-    // Auth guard — admin only
-    const session = VoltAuth.requireAuth(["admin"]);
-    if (session) {
-      document.getElementById('nav-user-name').textContent = session.displayName;
-      document.getElementById('logout-btn').addEventListener('click', () => VoltAuth.logout());
+    // Initialize user database
+    VoltAuth.initUsers().then(() => {
+      // Auth guard — admin only
+      const session = VoltAuth.requireAuth(["admin"]);
+      if (session) {
+        document.getElementById('nav-user-name').textContent = session.displayName;
+        document.getElementById('logout-btn').addEventListener('click', () => VoltAuth.logout());
+        initAdminPanel();
+      }
+    });
+
+    // ── Admin Panel Logic ────────────────────────────────
+    function initAdminPanel() {
+      loadRoomUsersTable();
+      setupModals();
+    }
+
+    // ── Room Users Table ─────────────────────────────────
+    function loadRoomUsersTable() {
+      const tbody = document.getElementById('room-users-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const users = VoltAuth.getRoomUsers();
+      users.forEach(user => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="room-badge">Room ${user.room}</span></td>
+          <td><code class="username-code">${user.username}</code></td>
+          <td>${user.displayName}</td>
+          <td>
+            <button class="table-action-btn" onclick="openChangePinModal(${user.room}, '${user.displayName}')">
+              🔑 Change PIN
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ── Modal Helpers ────────────────────────────────────
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        // Clear form states
+        modal.querySelectorAll('.modal-error, .modal-success').forEach(el => {
+          el.textContent = '';
+          el.classList.remove('visible');
+        });
+        modal.querySelectorAll('form').forEach(f => f.reset());
+      }
+    }
+
+    // ── Change PIN Modal ─────────────────────────────────
+    function openChangePinModal(roomId, displayName) {
+      document.getElementById('pin-room-id').value = roomId;
+      document.getElementById('modal-pin-room-info').textContent = `Changing PIN for ${displayName} (Room ${roomId})`;
+      openModal('modal-change-pin');
+    }
+
+    function setupModals() {
+      // Change PIN modal
+      document.getElementById('modal-pin-close').addEventListener('click', () => closeModal('modal-change-pin'));
+      document.getElementById('modal-pin-cancel').addEventListener('click', () => closeModal('modal-change-pin'));
+      document.getElementById('modal-change-pin').addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) closeModal('modal-change-pin');
+      });
+
+      document.getElementById('form-change-pin').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const roomId = parseInt(document.getElementById('pin-room-id').value);
+        const newPin = document.getElementById('pin-new').value;
+        const confirmPin = document.getElementById('pin-confirm').value;
+        const errorEl = document.getElementById('modal-pin-error');
+        const successEl = document.getElementById('modal-pin-success');
+
+        errorEl.textContent = '';
+        errorEl.classList.remove('visible');
+        successEl.textContent = '';
+        successEl.classList.remove('visible');
+
+        if (newPin !== confirmPin) {
+          errorEl.textContent = 'PINs do not match.';
+          errorEl.classList.add('visible');
+          return;
+        }
+
+        const result = await VoltAuth.changeRoomPin(roomId, newPin);
+        if (result.success) {
+          successEl.textContent = `PIN updated successfully for Room ${roomId}!`;
+          successEl.classList.add('visible');
+          setTimeout(() => closeModal('modal-change-pin'), 1500);
+        } else {
+          errorEl.textContent = result.error;
+          errorEl.classList.add('visible');
+        }
+      });
+
+      // Change Admin Password modal
+      document.getElementById('modal-admin-pw-close').addEventListener('click', () => closeModal('modal-change-admin-pw'));
+      document.getElementById('modal-admin-pw-cancel').addEventListener('click', () => closeModal('modal-change-admin-pw'));
+      document.getElementById('modal-change-admin-pw').addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) closeModal('modal-change-admin-pw');
+      });
+
+      document.getElementById('btn-change-admin-pw').addEventListener('click', () => {
+        openModal('modal-change-admin-pw');
+      });
+
+      document.getElementById('form-change-admin-pw').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPw = document.getElementById('admin-pw-current').value;
+        const newPw = document.getElementById('admin-pw-new').value;
+        const confirmPw = document.getElementById('admin-pw-confirm').value;
+        const errorEl = document.getElementById('modal-admin-pw-error');
+        const successEl = document.getElementById('modal-admin-pw-success');
+
+        errorEl.textContent = '';
+        errorEl.classList.remove('visible');
+        successEl.textContent = '';
+        successEl.classList.remove('visible');
+
+        if (newPw !== confirmPw) {
+          errorEl.textContent = 'New passwords do not match.';
+          errorEl.classList.add('visible');
+          return;
+        }
+
+        const result = await VoltAuth.changeAdminPassword(currentPw, newPw);
+        if (result.success) {
+          successEl.textContent = 'Admin password updated successfully!';
+          successEl.classList.add('visible');
+          setTimeout(() => closeModal('modal-change-admin-pw'), 1500);
+        } else {
+          errorEl.textContent = result.error;
+          errorEl.classList.add('visible');
+        }
+      });
+
+      // Reset to defaults
+      document.getElementById('btn-reset-defaults').addEventListener('click', () => {
+        if (confirm('This will reset ALL accounts to factory defaults. Are you sure?')) {
+          VoltAuth.resetToDefaults();
+          VoltAuth.initUsers().then(() => {
+            loadRoomUsersTable();
+            alert('All credentials have been reset to defaults. Please log in again.');
+            VoltAuth.logout();
+          });
+        }
+      });
+      // Add Room
+      document.getElementById('btn-add-room').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-add-room');
+        btn.disabled = true;
+        btn.querySelector('span').textContent = 'Adding...';
+
+        const result = await VoltAuth.addRoom();
+        if (result.success) {
+          const roomId = result.roomId;
+          // Refresh table
+          loadRoomUsersTable();
+          // Reload dashboard rooms (live room cards + charts)
+          if (typeof reloadDashboardRooms === 'function') {
+            reloadDashboardRooms();
+          }
+          // Add event log entry
+          if (typeof addEventToLog === 'function') {
+            addEventToLog({ type: 'relay_on', message: `Room ${roomId} added — Relay ON`, timestamp: Date.now() });
+          }
+          btn.querySelector('span').textContent = `✓ Room ${roomId} Added!`;
+          setTimeout(() => {
+            btn.querySelector('span').textContent = '+ Add Room';
+            btn.disabled = false;
+          }, 1500);
+        } else {
+          alert('Error: ' + result.error);
+          btn.querySelector('span').textContent = '+ Add Room';
+          btn.disabled = false;
+        }
+      });
     }
   </script>
 </body>
