@@ -9,8 +9,14 @@
  *   - Fall back to realistic DEMO DATA simulation
  *   - Update telemetry, room cards, event log, charts
  *   - Drive uptime counter and update counter
+ *   - Role-aware: filters data based on user session
  * ─────────────────────────────────────────────────────────
  */
+
+// ── Session / Role Detection ─────────────────────────────
+const CURRENT_SESSION = (typeof VoltAuth !== 'undefined') ? VoltAuth.getSession() : null;
+const IS_ADMIN = !CURRENT_SESSION || CURRENT_SESSION.role === 'admin';
+const USER_ROOM = CURRENT_SESSION ? CURRENT_SESSION.room : null; // null for admin
 
 // ── Demo / Simulation State ──────────────────────────────
 const DEMO = {
@@ -142,8 +148,11 @@ function updateAllRooms(rooms) {
   const grid = document.getElementById("room-grid");
   if (!grid) return;
 
+  // Filter rooms for user role
+  const filteredRooms = IS_ADMIN ? rooms : rooms.filter(r => r.id === USER_ROOM);
+
   let activeCount = 0;
-  rooms.forEach(room => {
+  filteredRooms.forEach(room => {
     if (room.relay) activeCount++;
     if (document.getElementById(`room-card-${room.id}`)) {
       updateRoomCard(room);
@@ -256,9 +265,9 @@ function runDemoSimulation() {
   updateAllRooms(DEMO.rooms);
   StatusIndicator.markDataReceived();
 
-  // fire a random event every ~15 ticks
+  // fire a random event every ~15 ticks (admin only has event log)
   _demoTick++;
-  if (_demoTick % 15 === 0) {
+  if (_demoTick % 15 === 0 && document.getElementById("event-log")) {
     const ev = RANDOM_EVENTS[_nextEventIndex % RANDOM_EVENTS.length];
     addEventToLog({ ...ev, timestamp: Date.now() });
     _nextEventIndex++;
@@ -283,12 +292,14 @@ function attachFirebaseListeners() {
     updateRoomCard({ id: 2, name: "Room 2", ...data });
   });
 
-  // Events
-  listenToPath("/events", data => {
-    if (!data) return;
-    const events = Object.values(data).slice(-1); // newest
-    events.forEach(e => addEventToLog(e));
-  });
+  // Events (admin only)
+  if (IS_ADMIN) {
+    listenToPath("/events", data => {
+      if (!data) return;
+      const events = Object.values(data).slice(-1); // newest
+      events.forEach(e => addEventToLog(e));
+    });
+  }
 
   // Analytics (optional paths)
   listenToPath("/analytics/daily", data => {
@@ -298,14 +309,16 @@ function attachFirebaseListeners() {
 
 // ── Init ─────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  // Init charts
+  // Init charts (role-aware via charts.js)
   initDailyChart(DEMO.dailyData);
 
   // Init room cards
   updateAllRooms(DEMO.rooms);
 
-  // Initial event log
-  loadInitialEvents();
+  // Initial event log (admin only — user.html has no event-log element)
+  if (document.getElementById("event-log")) {
+    loadInitialEvents();
+  }
 
   // Status indicator ticker
   StatusIndicator.startTicker();

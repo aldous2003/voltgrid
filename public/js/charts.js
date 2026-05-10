@@ -6,6 +6,8 @@
  * Charts:
  *   1. analyticsChart — Energy kWh analysis (bar, per room)
  *                       Supports Daily / Weekly / Monthly / Yearly tabs
+ *                       Role-aware: shows all rooms for admin,
+ *                       only the user's room for user role.
  * ─────────────────────────────────────────────────────────
  */
 
@@ -62,23 +64,47 @@ function initDailyChart(data) {
 }
 
 function buildAnalyticsData(data) {
-  return {
-    labels: data.map(d => d.label),
-    datasets: [
-      {
-        label: "Room 1",
-        data: data.map(d => d.room1),
-        backgroundColor: "rgba(0,180,255,0.65)",
-        borderRadius: 4
-      },
-      {
-        label: "Room 2",
-        data: data.map(d => d.room2),
-        backgroundColor: "rgba(0,230,118,0.65)",
-        borderRadius: 4
-      }
-    ]
-  };
+  // Determine role from global session variables (set in dashboard.js)
+  const isAdmin = (typeof IS_ADMIN !== 'undefined') ? IS_ADMIN : true;
+  const userRoom = (typeof USER_ROOM !== 'undefined') ? USER_ROOM : null;
+
+  if (isAdmin) {
+    // Admin: show both rooms
+    return {
+      labels: data.map(d => d.label),
+      datasets: [
+        {
+          label: "Room 1",
+          data: data.map(d => d.room1),
+          backgroundColor: "rgba(0,180,255,0.65)",
+          borderRadius: 4
+        },
+        {
+          label: "Room 2",
+          data: data.map(d => d.room2),
+          backgroundColor: "rgba(0,230,118,0.65)",
+          borderRadius: 4
+        }
+      ]
+    };
+  } else {
+    // User: show only their room
+    const roomKey = `room${userRoom}`;
+    const roomLabel = `Room ${userRoom}`;
+    const color = userRoom === 1 ? "rgba(0,180,255,0.65)" : "rgba(0,230,118,0.65)";
+
+    return {
+      labels: data.map(d => d.label),
+      datasets: [
+        {
+          label: roomLabel,
+          data: data.map(d => d[roomKey]),
+          backgroundColor: color,
+          borderRadius: 4
+        }
+      ]
+    };
+  }
 }
 
 /**

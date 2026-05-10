@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VoltGrid — Live Dashboard</title>
+  <title>VoltGrid — Admin Dashboard</title>
+  <meta name="description" content="VoltGrid Admin Dashboard — monitor all rooms, telemetry, and energy analytics." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
@@ -18,17 +19,25 @@
   <!-- ── NAV ── -->
   <nav class="nav">
     <div class="nav-inner">
-      <a href="index.html" class="nav-logo">
+      <a href="admin.html" class="nav-logo">
         <span class="logo-icon">⚡</span>
         <span class="logo-text">VOLT<span class="logo-accent">GRID</span></span>
       </a>
-      <div class="nav-links">
-        <a href="index.html" class="nav-link">Home</a>
-        <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      <div class="nav-role-badge admin-badge" id="nav-role-badge">
+        <span class="role-icon">🛡️</span>
+        <span id="nav-role-text">Admin Dashboard</span>
       </div>
-      <div class="nav-status" id="nav-status">
-        <span class="status-dot green" id="nav-dot"></span>
-        <span id="nav-status-text">ONLINE</span>
+      <div class="nav-right-group">
+        <div class="nav-status" id="nav-status">
+          <span class="status-dot green" id="nav-dot"></span>
+          <span id="nav-status-text">ONLINE</span>
+        </div>
+        <div class="nav-user-info" id="nav-user-info">
+          <span class="nav-user-name" id="nav-user-name">Admin</span>
+        </div>
+        <button class="nav-logout-btn" id="logout-btn" title="Sign Out">
+          <span>↪ Sign Out</span>
+        </button>
       </div>
     </div>
   </nav>
@@ -162,11 +171,20 @@
     </div>
   </footer>
 
+  <script src="js/auth.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="components/roomCard.js"></script>
   <script src="components/statusIndicator.js"></script>
   <script src="js/charts.js"></script>
   <script src="js/dashboard.js"></script>
+  <script>
+    // Auth guard — admin only
+    const session = VoltAuth.requireAuth(["admin"]);
+    if (session) {
+      document.getElementById('nav-user-name').textContent = session.displayName;
+      document.getElementById('logout-btn').addEventListener('click', () => VoltAuth.logout());
+    }
+  </script>
 </body>
 
 </html>

@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VoltGrid — IoT Prepaid Electricity Monitor</title>
+  <title>VoltGrid — Sign In</title>
+  <meta name="description" content="Sign in to VoltGrid IoT Prepaid Electricity Monitoring System dashboard." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
@@ -12,128 +13,172 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 
-<body class="home-page">
+<body class="login-page">
 
-  <!-- ── NAV ── -->
-  <nav class="nav">
-    <div class="nav-inner">
-      <a href="index.html" class="nav-logo">
-        <span class="logo-icon">⚡</span>
-        <span class="logo-text">VOLT<span class="logo-accent">GRID</span></span>
-      </a>
-      <div class="nav-links">
-        <a href="index.html" class="nav-link active">Home</a>
-        <a href="dashboard.html" class="nav-link">Dashboard</a>
-      </div>
-      <a href="dashboard.html" class="btn-launch">
-        <span class="btn-dot"></span> Live Dashboard
-      </a>
-    </div>
-  </nav>
+  <!-- ── ANIMATED GRID BACKGROUND ── -->
+  <div class="login-grid-bg"></div>
+  <div class="login-glow login-glow-1"></div>
+  <div class="login-glow login-glow-2"></div>
 
-  <!-- ── HERO ── -->
-  <section class="hero">
-    <div class="hero-grid-bg"></div>
-    <div class="hero-content">
-      <div class="hero-badge">
-        <span class="pulse-dot"></span> System Active — Live Demo
-      </div>
-      <h1 class="hero-title">
-        Residential IoT <br>
-        <span class="title-accent">Prepaid</span> Electricity <br>
-        Monitoring System
-      </h1>
-      <p class="hero-desc">
-        Real-time telemetry from ESP32-powered energy meters — voltage, current,
-        power and credit balance streamed live to Firebase and displayed here.
-      </p>
-      <div class="hero-actions">
-        <a href="dashboard.html" class="btn-primary">Open Live Dashboard →</a>
-      </div>
+  <!-- ── LOGIN CONTAINER ── -->
+  <main class="login-container">
+
+    <!-- ── BRAND ── -->
+    <div class="login-brand">
+      <div class="login-logo-icon">⚡</div>
+      <div class="login-logo-text">VOLT<span class="logo-accent">GRID</span></div>
+      <div class="login-tagline">IoT Prepaid Electricity Monitor</div>
     </div>
 
-  </section>
+    <!-- ── LOGIN CARD ── -->
+    <div class="login-card">
+      <div class="login-card-header">
+        <h1 class="login-title">Welcome Back</h1>
+        <p class="login-subtitle">Sign in to access your dashboard</p>
+      </div>
 
-  <!-- ── SYSTEM OVERVIEW ── -->
-  <section class="section" id="overview">
-    <div class="container">
-      <div class="section-label">PROJECT OVERVIEW</div>
-      <h2 class="section-title">What is VoltGrid?</h2>
-      <p class="section-desc">
-        VoltGrid is an embedded IoT system that provides prepaid electricity metering for multi-room environments.
-        Residents load credits via coin slot, and the ESP32 monitors real-time consumption — automatically cutting
-        off the relay when credit runs out.
-      </p>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <h3>Real-Time Metering</h3>
-          <p>PZEM-004T measures voltage, current, power, frequency and energy every second.</p>
+      <form class="login-form" id="login-form" autocomplete="off">
+        <!-- Error message -->
+        <div class="login-error" id="login-error" role="alert" aria-live="polite"></div>
+
+        <div class="form-group">
+          <label for="login-username" class="form-label">USERNAME</label>
+          <div class="form-input-wrap">
+            <span class="form-input-icon">👤</span>
+            <input
+              type="text"
+              id="login-username"
+              class="form-input"
+              placeholder="Enter your username"
+              autocomplete="username"
+              required
+            />
+          </div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">💳</div>
-          <h3>Coin-Based Top-Up</h3>
-          <p>Residents insert coins to load credit. The system tracks balance and remaining kWh.</p>
+
+        <div class="form-group">
+          <label for="login-password" class="form-label">PASSWORD</label>
+          <div class="form-input-wrap">
+            <span class="form-input-icon">🔒</span>
+            <input
+              type="password"
+              id="login-password"
+              class="form-input"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="password-toggle" id="password-toggle" aria-label="Toggle password visibility">
+              <span id="eye-icon">👁️</span>
+            </button>
+          </div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔁</div>
-          <h3>Relay Control</h3>
-          <p>Electricity is automatically disconnected when credit reaches zero. Manual override available.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📡</div>
-          <h3>Firebase Sync</h3>
-          <p>All data is published to Firebase in real-time, powering this monitoring dashboard.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🖥️</div>
-          <h3>LCD + Keypad UI</h3>
-          <p>On-device interface lets users check balance, select rooms, and interact with the system.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <h3>Live Analytics</h3>
-          <p>Charts show power vs time, daily and weekly energy consumption for each room.</p>
+
+        <button type="submit" class="login-btn" id="login-btn">
+          <span class="login-btn-text">Sign In</span>
+          <span class="login-btn-arrow">→</span>
+        </button>
+      </form>
+
+      <div class="login-card-footer">
+        <div class="login-status">
+          <span class="pulse-dot"></span>
+          <span>System Online — Live Demo</span>
         </div>
       </div>
     </div>
-  </section>
 
-
-
-  <!-- ── LIVE STATUS PREVIEW ── -->
-  <section class="section dark-section">
-    <div class="container center-content">
-      <div class="section-label">SYSTEM STATUS</div>
-      <h2 class="section-title">System is Live</h2>
-      <div class="live-status-banner">
-        <div class="live-dot-big"></div>
-        <div class="live-status-text">
-          <div class="live-big-text">ONLINE</div>
-          <div id="last-seen-home" class="live-sub">Last data received: just now</div>
+    <!-- ── DEMO HINT ── -->
+    <div class="login-hint">
+      <div class="hint-label">DEMO ACCOUNTS</div>
+      <div class="hint-accounts">
+        <div class="hint-account">
+          <span class="hint-role admin-role">Admin</span>
+          <code>admin</code> / <code>admin123</code>
+        </div>
+        <div class="hint-account">
+          <span class="hint-role user-role">Room 1</span>
+          <code>room1</code> / <code>room1pass</code>
+        </div>
+        <div class="hint-account">
+          <span class="hint-role user-role">Room 2</span>
+          <code>room2</code> / <code>room2pass</code>
         </div>
       </div>
-      <a href="dashboard.html" class="btn-primary large">Open Full Dashboard →</a>
     </div>
-  </section>
+
+  </main>
 
   <!-- ── FOOTER ── -->
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-logo">⚡ VOLTGRID</div>
-      <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase · Engineering Project Demo
-      </div>
-    </div>
+  <footer class="login-footer">
+    <div class="footer-logo">⚡ VOLTGRID</div>
+    <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase · Engineering Project Demo</div>
   </footer>
 
-  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
   <script>
-    // Update last seen
-    function updateLastSeen() {
-      document.getElementById('last-seen-home').textContent = 'Last data received: just now';
-    }
-    setInterval(updateLastSeen, 2000);
-    updateLastSeen();
+    // If already logged in, redirect to appropriate dashboard
+    VoltAuth.redirectIfLoggedIn();
+
+    // ── Login Form Handler ──
+    const form = document.getElementById('login-form');
+    const errorEl = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    const passwordInput = document.getElementById('login-password');
+    const passwordToggle = document.getElementById('password-toggle');
+    const eyeIcon = document.getElementById('eye-icon');
+
+    // Toggle password visibility
+    passwordToggle.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      eyeIcon.textContent = isPassword ? '🙈' : '👁️';
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      errorEl.textContent = '';
+      errorEl.classList.remove('visible');
+
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+
+      // Button loading state
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      // Simulate slight delay for UX
+      setTimeout(() => {
+        const result = VoltAuth.login(username, password);
+
+        if (result.success) {
+          btn.classList.remove('loading');
+          btn.classList.add('success');
+          document.querySelector('.login-btn-text').textContent = 'Success!';
+          document.querySelector('.login-btn-arrow').textContent = '✓';
+
+          // Redirect after brief success animation
+          setTimeout(() => {
+            if (result.user.role === 'admin') {
+              window.location.href = 'admin.html';
+            } else {
+              window.location.href = 'user.html';
+            }
+          }, 600);
+        } else {
+          btn.classList.remove('loading');
+          btn.disabled = false;
+          errorEl.textContent = result.error;
+          errorEl.classList.add('visible');
+
+          // Shake the card
+          document.querySelector('.login-card').classList.add('shake');
+          setTimeout(() => {
+            document.querySelector('.login-card').classList.remove('shake');
+          }, 500);
+        }
+      }, 800);
+    });
   </script>
 </body>
 
