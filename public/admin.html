@@ -373,7 +373,7 @@
     }
 
     // ── Room Users Table ─────────────────────────────────
-    function loadRoomUsersTable() {
+    function loadRoomUsersTable(highlightRoomId = null) {
       const tbody = document.getElementById('room-users-tbody');
       if (!tbody) return;
       tbody.innerHTML = '';
@@ -381,6 +381,9 @@
       const users = VoltAuth.getRoomUsers();
       users.forEach(user => {
         const tr = document.createElement('tr');
+        if (highlightRoomId && user.room === highlightRoomId) {
+          tr.classList.add('row-appearing');
+        }
         tr.innerHTML = `
           <td><span class="room-badge">Room ${user.room}</span></td>
           <td><code class="username-code">${user.username}</code></td>
@@ -606,33 +609,40 @@
       });
       // Add Room
       document.getElementById('btn-add-room').addEventListener('click', async () => {
-        const btn = document.getElementById('btn-add-room');
-        btn.disabled = true;
-        btn.querySelector('span').textContent = 'Adding...';
+        VoltAuth.confirm(
+          "Add New Room",
+          "This will generate a new room account with a default username and PIN. Are you sure you want to proceed?",
+          "Add Room",
+          async () => {
+            const btn = document.getElementById('btn-add-room');
+            btn.disabled = true;
+            btn.querySelector('span').textContent = 'Adding...';
 
-        const result = await VoltAuth.addRoom();
-        if (result.success) {
-          const roomId = result.roomId;
-          // Refresh table
-          loadRoomUsersTable();
-          // Reload dashboard rooms (live room cards + charts)
-          if (typeof reloadDashboardRooms === 'function') {
-            reloadDashboardRooms();
+            const result = await VoltAuth.addRoom();
+            if (result.success) {
+              const roomId = result.roomId;
+              // Refresh table with entrance animation
+              loadRoomUsersTable(roomId);
+              // Reload dashboard rooms (live room cards + charts)
+              if (typeof reloadDashboardRooms === 'function') {
+                reloadDashboardRooms();
+              }
+              // Add event log entry
+              if (typeof addEventToLog === 'function') {
+                addEventToLog({ type: 'relay_on', message: `Room ${roomId} added — Relay ON`, timestamp: Date.now() });
+              }
+              btn.querySelector('span').textContent = `✓ Room ${roomId} Added!`;
+              setTimeout(() => {
+                btn.querySelector('span').textContent = '+ Add Room';
+                btn.disabled = false;
+              }, 1500);
+            } else {
+              alert('Error: ' + result.error);
+              btn.querySelector('span').textContent = '+ Add Room';
+              btn.disabled = false;
+            }
           }
-          // Add event log entry
-          if (typeof addEventToLog === 'function') {
-            addEventToLog({ type: 'relay_on', message: `Room ${roomId} added — Relay ON`, timestamp: Date.now() });
-          }
-          btn.querySelector('span').textContent = `✓ Room ${roomId} Added!`;
-          setTimeout(() => {
-            btn.querySelector('span').textContent = '+ Add Room';
-            btn.disabled = false;
-          }, 1500);
-        } else {
-          alert('Error: ' + result.error);
-          btn.querySelector('span').textContent = '+ Add Room';
-          btn.disabled = false;
-        }
+        );
       });
     }
   </script>
