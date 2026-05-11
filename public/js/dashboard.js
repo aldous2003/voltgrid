@@ -192,20 +192,23 @@ const EVENT_ICON_MAP = {
 };
 
 const INITIAL_EVENTS = [
-  { type: "login", message: "Admin login — dashboard connected", timestamp: Date.now() - 180000 },
-  { type: "relay_on", message: "Relay ON — Room 1 activated", timestamp: Date.now() - 150000 },
-  { type: "credit", message: "Credit top-up ₱50.00 — Room 1", timestamp: Date.now() - 120000 },
-  { type: "relay_on", message: "Relay ON — Room 2 activated", timestamp: Date.now() - 90000 },
-  { type: "warn", message: "Low credit warning — Room 2 (₱20.00)", timestamp: Date.now() - 30000 }
+  { type: "login", message: "Admin login — dashboard connected", roomId: null, timestamp: Date.now() - 180000 },
+  { type: "relay_on", message: "Relay ON — Room 1 activated", roomId: 1, timestamp: Date.now() - 150000 },
+  { type: "credit", message: "Credit top-up ₱50.00 — Room 1", roomId: 1, timestamp: Date.now() - 120000 },
+  { type: "relay_on", message: "Relay ON — Room 2 activated", roomId: 2, timestamp: Date.now() - 90000 },
+  { type: "warn", message: "Low credit warning — Room 2 (₱20.00)", roomId: 2, timestamp: Date.now() - 30000 }
 ];
 
 function formatEventTime(ts) {
   return new Date(ts).toLocaleTimeString("en-US", { hour12: false });
 }
 
-function addEventToLog(event) {
+function renderEventToDOM(event) {
   const log = document.getElementById("event-log");
   if (!log) return;
+
+  // If we're a user, only show our own logs and system logs
+  if (!IS_ADMIN && event.roomId !== null && event.roomId !== USER_ROOM) return;
 
   const el = document.createElement("div");
   el.className = `event-item ev-${event.type.replace("_", "-")}`;
@@ -220,13 +223,32 @@ function addEventToLog(event) {
   // prepend new events
   log.insertBefore(el, log.firstChild);
 
-  // keep max 100 events
+  // keep max 100 events in DOM
   while (log.children.length > 100) log.removeChild(log.lastChild);
 }
 
+function addEventToLog(event) {
+  if (typeof VoltAuth !== 'undefined' && VoltAuth.logEvent) {
+    VoltAuth.logEvent(event.type, event.message, event.roomId || null);
+  }
+  // We need to pass the actual event back out, but VoltAuth.logEvent saves the timestamp.
+  // We will just render it locally with current timestamp.
+  event.timestamp = event.timestamp || Date.now();
+  renderEventToDOM(event);
+}
+
 function loadInitialEvents() {
-  // load oldest → newest
-  [...INITIAL_EVENTS].reverse().forEach(e => addEventToLog(e));
+  if (typeof VoltAuth !== 'undefined' && VoltAuth.getLogs) {
+    let logs = VoltAuth.getLogs();
+    if (logs.length === 0) {
+      INITIAL_EVENTS.forEach(e => VoltAuth.logEvent(e.type, e.message, e.roomId));
+      logs = VoltAuth.getLogs();
+    }
+    // render oldest → newest (renderEventToDOM prepends, so newest ends up at top)
+    logs.forEach(e => renderEventToDOM(e));
+  } else {
+    INITIAL_EVENTS.forEach(e => renderEventToDOM(e));
+  }
 }
 
 // ── Uptime counter ───────────────────────────────────────
@@ -245,11 +267,11 @@ function startUptime() {
 // ── Demo simulation loop ─────────────────────────────────
 let _demoTick = 0;
 const RANDOM_EVENTS = [
-  { type: "credit", message: "Credit top-up ₱20.00 — Room 2" },
-  { type: "warn", message: "Low credit warning — Room 2 (₱10.00)" },
-  { type: "relay_off", message: "Relay OFF — Room 2 credit depleted" },
-  { type: "relay_on", message: "Relay ON — Room 2 credit restored" },
-  { type: "credit", message: "Credit top-up ₱100.00 — Room 1" }
+  { type: "credit", message: "Coin Insert ₱5.00 — Room 2", roomId: 2 },
+  { type: "warn", message: "Low credit warning — Room 2 (₱10.00)", roomId: 2 },
+  { type: "credit", message: "Coin Insert ₱10.00 — Room 1", roomId: 1 },
+  { type: "relay_on", message: "Relay ON — Room 2 credit restored", roomId: 2 },
+  { type: "credit", message: "Credit top-up ₱100.00 — Room 1", roomId: 1 }
 ];
 let _nextEventIndex = 0;
 
@@ -274,6 +296,14 @@ function runDemoSimulation() {
       // Other rooms: slow credit drain
       room.credit = Math.max(0, +(room.credit - 0.001).toFixed(4));
       room.remainingKwh = Math.max(0, +(room.credit / 10.75).toFixed(4));
+    }
+
+    if (room.credit <= 0 && room.relay) {
+      room.relay = false;
+      if (typeof VoltAuth !== 'undefined' && VoltAuth.updateRoomConfig) {
+        VoltAuth.updateRoomConfig(room.id, { relay: false });
+      }
+      addEventToLog({ type: "relay_off", message: `Power cutoff event — Room ${room.id} credit depleted`, roomId: room.id });
     }
   });
 
@@ -359,9 +389,9 @@ window.adminUpdateCredit = function(roomId, amount) {
   
   updateAllRooms(DEMO.rooms);
   if (amount > 0) {
-    addEventToLog({ type: 'credit', message: `Admin topped up ₱${amount.toFixed(2)} — Room ${roomId}`, timestamp: Date.now() });
+    addEventToLog({ type: 'credit', message: `Admin topped up ₱${amount.toFixed(2)} — Room ${roomId}`, roomId });
   } else {
-    addEventToLog({ type: 'warn', message: `Admin deducted ₱${Math.abs(amount).toFixed(2)} — Room ${roomId}`, timestamp: Date.now() });
+    addEventToLog({ type: 'warn', message: `Admin deducted ₱${Math.abs(amount).toFixed(2)} — Room ${roomId}`, roomId });
   }
   return true;
 };
@@ -378,7 +408,7 @@ window.adminSetRelay = function(roomId, state) {
   
   updateAllRooms(DEMO.rooms);
   const stateStr = state ? 'ON' : 'OFF';
-  addEventToLog({ type: state ? 'relay_on' : 'relay_off', message: `Admin forced Relay ${stateStr} — Room ${roomId}`, timestamp: Date.now() });
+  addEventToLog({ type: state ? 'relay_on' : 'relay_off', message: `Admin forced Relay ${stateStr} — Room ${roomId}`, roomId });
   return true;
 };
 

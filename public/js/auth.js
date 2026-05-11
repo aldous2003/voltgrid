@@ -21,6 +21,7 @@ const VoltAuth = (() => {
   const SESSION_KEY = "voltgrid_session";
   const USERS_KEY   = "voltgrid_users";
   const ROOMS_KEY   = "voltgrid_rooms";
+  const LOGS_KEY    = "voltgrid_logs";
 
   // ── Default user definitions (unhashed — used only for first-time init) ──
   const DEFAULT_USERS = [
@@ -126,6 +127,13 @@ const VoltAuth = (() => {
     };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
+    // Log the login event
+    if (user.role === 'admin') {
+      logEvent('login', 'Admin logged in', null);
+    } else {
+      logEvent('login', `${user.displayName} (Room ${user.room}) logged in`, user.room);
+    }
+
     return { success: true, user: session };
   }
 
@@ -215,10 +223,8 @@ const VoltAuth = (() => {
       .map(u => ({
         username:    u.username,
         room:        u.room,
-        username:    u.username,
-        room:        u.room,
         displayName: u.displayName,
-        pin:         u.pin
+        pin:         u.pin || `room${u.room}pass`
       }));
   }
 
@@ -432,6 +438,30 @@ const VoltAuth = (() => {
   function resetToDefaults() {
     localStorage.removeItem(USERS_KEY);
     localStorage.removeItem(ROOMS_KEY);
+    localStorage.removeItem(LOGS_KEY);
+  }
+
+  // ── Persistent Event Logging ───────────────────────────
+  /**
+   * Fetch all stored logs.
+   */
+  function getLogs() {
+    try {
+      const raw = localStorage.getItem(LOGS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Append a new log event to the persistent storage.
+   */
+  function logEvent(type, message, roomId = null) {
+    let events = getLogs();
+    events.push({ type, message, timestamp: Date.now(), roomId });
+    if (events.length > 200) events = events.slice(events.length - 200); // keep max 200
+    localStorage.setItem(LOGS_KEY, JSON.stringify(events));
   }
 
   return {
@@ -451,6 +481,8 @@ const VoltAuth = (() => {
     changeRoomPin,
     changeAdminPassword,
     addRoomUser,
-    resetToDefaults
+    resetToDefaults,
+    logEvent,
+    getLogs
   };
 })();

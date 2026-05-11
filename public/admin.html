@@ -128,7 +128,7 @@
         </div>
       </div>
       <div>
-        <div class="dash-section-label">📋 SYSTEM EVENT LOG</div>
+        <div class="dash-section-label">📋 TRANSACTION LOGS</div>
         <div class="event-log-wrap">
           <div class="event-log" id="event-log">
             <!-- Populated by JS -->
@@ -182,12 +182,37 @@
               <tr>
                 <th>Room</th>
                 <th>Username</th>
-                <th>Password</th>
+                <th>PIN</th>
                 <th>Display Name</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="room-users-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Credit Management -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">
+            <span class="admin-card-icon">💰</span>
+            Credit Management
+          </div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="credit-management-table">
+            <thead>
+              <tr>
+                <th>Room</th>
+                <th>Balance</th>
+                <th>Adjust Credit</th>
+                <th>Override</th>
+              </tr>
+            </thead>
+            <tbody id="credit-management-tbody">
               <!-- Populated by JS -->
             </tbody>
           </table>
@@ -337,6 +362,7 @@
     // ── Admin Panel Logic ────────────────────────────────
     function initAdminPanel() {
       loadRoomUsersTable();
+      loadCreditManagementTable();
       setupModals();
     }
 
@@ -377,6 +403,62 @@
         if (typeof addEventToLog === 'function') {
           addEventToLog({ type: 'warn', message: `Room ${roomId} was deleted by Admin`, timestamp: Date.now() });
         }
+      }
+    }
+
+    // ── Credit Management Table ──────────────────────────
+    function loadCreditManagementTable() {
+      const tbody = document.getElementById('credit-management-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const rooms = typeof VoltAuth !== 'undefined' ? VoltAuth.getRoomConfigs() : [];
+      rooms.forEach(room => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="room-badge">Room ${room.id}</span></td>
+          <td><code class="username-code" style="color: ${room.credit < 20 ? 'var(--red)' : 'var(--green)'}">₱ ${Number(room.credit).toFixed(2)}</code></td>
+          <td style="display: flex; gap: 8px; align-items: center;">
+            <input type="number" id="credit-input-${room.id}" class="form-input" style="width: 80px; padding: 4px; font-size: 11px;" placeholder="Amount" step="10">
+            <button class="table-action-btn" onclick="handleAddCredit(${room.id})">Add</button>
+            <button class="table-action-btn danger" onclick="handleDeductCredit(${room.id})">Deduct</button>
+          </td>
+          <td>
+            <div style="display: flex; gap: 8px;">
+              <button class="table-action-btn" style="${room.relay ? 'opacity: 0.5; pointer-events: none;' : ''}" onclick="handleSetRelay(${room.id}, true)">Force ON</button>
+              <button class="table-action-btn danger" style="${!room.relay ? 'opacity: 0.5; pointer-events: none;' : ''}" onclick="handleSetRelay(${room.id}, false)">Force OFF</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function handleAddCredit(roomId) {
+      const input = document.getElementById(`credit-input-${roomId}`);
+      const amount = parseFloat(input.value);
+      if (isNaN(amount) || amount <= 0) return alert("Enter a valid positive amount to add.");
+
+      if (window.adminUpdateCredit && window.adminUpdateCredit(roomId, amount)) {
+        input.value = '';
+        loadCreditManagementTable();
+      }
+    }
+
+    function handleDeductCredit(roomId) {
+      const input = document.getElementById(`credit-input-${roomId}`);
+      const amount = parseFloat(input.value);
+      if (isNaN(amount) || amount <= 0) return alert("Enter a valid positive amount to deduct.");
+
+      if (window.adminUpdateCredit && window.adminUpdateCredit(roomId, -amount)) {
+        input.value = '';
+        loadCreditManagementTable();
+      }
+    }
+
+    function handleSetRelay(roomId, state) {
+      if (window.adminSetRelay && window.adminSetRelay(roomId, state)) {
+        loadCreditManagementTable();
       }
     }
 
