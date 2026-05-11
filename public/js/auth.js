@@ -19,15 +19,15 @@
 
 const VoltAuth = (() => {
   const SESSION_KEY = "voltgrid_session";
-  const USERS_KEY   = "voltgrid_users";
-  const ROOMS_KEY   = "voltgrid_rooms";
-  const LOGS_KEY    = "voltgrid_logs";
+  const USERS_KEY = "voltgrid_users";
+  const ROOMS_KEY = "voltgrid_rooms";
+  const LOGS_KEY = "voltgrid_logs";
 
   // ── Default user definitions (unhashed — used only for first-time init) ──
   const DEFAULT_USERS = [
-    { username: "admin", defaultPassword: "admin123", role: "admin", room: null,  displayName: "Administrator" },
-    { username: "room1", defaultPassword: "room1pass", role: "user",  room: 1,    displayName: "Room 1 Tenant" },
-    { username: "room2", defaultPassword: "room2pass", role: "user",  room: 2,    displayName: "Room 2 Tenant" }
+    { username: "admin", defaultPassword: "admin123", role: "admin", room: null, displayName: "Administrator" },
+    { username: "room1", defaultPassword: "room1pass", role: "user", room: 1, displayName: "Room 1 Tenant" },
+    { username: "room2", defaultPassword: "room2pass", role: "user", room: 2, displayName: "Room 2 Tenant" }
   ];
 
   // ── SHA-256 Hashing ────────────────────────────────────
@@ -56,11 +56,11 @@ const VoltAuth = (() => {
     const users = [];
     for (const def of DEFAULT_USERS) {
       users.push({
-        username:    def.username,
+        username: def.username,
         passwordHash: await hashPassword(def.defaultPassword),
-        pin:         def.defaultPassword,
-        role:        def.role,
-        room:        def.room,
+        pin: def.defaultPassword,
+        role: def.role,
+        room: def.room,
         displayName: def.displayName
       });
     }
@@ -119,11 +119,11 @@ const VoltAuth = (() => {
 
     // Store session
     const session = {
-      username:    user.username,
-      role:        user.role,
-      room:        user.room,
+      username: user.username,
+      role: user.role,
+      room: user.room,
       displayName: user.displayName,
-      loginTime:   Date.now()
+      loginTime: Date.now()
     };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
@@ -140,10 +140,73 @@ const VoltAuth = (() => {
   // ── Logout ─────────────────────────────────────────────
   /**
    * Log out the current user and redirect to login page.
+   * @param {boolean} confirmFirst - whether to ask for confirmation
    */
-  function logout() {
-    sessionStorage.removeItem(SESSION_KEY);
-    window.location.href = "index.html";
+  function logout(confirmFirst = true) {
+    const performLogout = () => {
+      sessionStorage.removeItem(SESSION_KEY);
+      window.location.href = "index.html";
+    };
+
+    if (confirmFirst) {
+      showConfirmModal(
+        "Sign Out",
+        "Are you sure you want to sign out? You will need to log in again to access your dashboard.",
+        "Sign Out",
+        performLogout
+      );
+    } else {
+      performLogout();
+    }
+  }
+
+  /**
+   * Private: Show a clean, themed confirmation modal.
+   */
+  function showConfirmModal(title, message, confirmText, onConfirm) {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    overlay.id = "volt-confirm-modal";
+
+    overlay.innerHTML = `
+      <div class="modal-card" style="max-width: 380px;">
+        <div class="modal-header">
+          <h2 class="modal-title">⚡ ${title}</h2>
+        </div>
+        <div class="modal-body" style="gap: 20px;">
+          <p style="color: var(--text2); font-size: 14px; line-height: 1.5; text-align: center; margin: 10px 0;">
+            ${message}
+          </p>
+          <div class="modal-actions" style="justify-content: center; width: 100%; margin-top: 5px;">
+            <button type="button" class="modal-btn cancel" id="volt-confirm-cancel" style="flex: 1;">Cancel</button>
+            <button type="button" class="modal-btn primary" id="volt-confirm-ok" style="flex: 1; background: var(--red-dim); color: var(--red); border: 1px solid var(--red);">
+              ${confirmText}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Fade in
+    setTimeout(() => overlay.classList.add("active"), 10);
+
+    const close = () => {
+      overlay.classList.remove("active");
+      setTimeout(() => overlay.remove(), 250);
+    };
+
+    overlay.querySelector("#volt-confirm-cancel").onclick = close;
+    overlay.querySelector("#volt-confirm-ok").onclick = () => {
+      onConfirm();
+      close();
+    };
+
+    // Close on backdrop click
+    overlay.onclick = (e) => {
+      if (e.target === overlay) close();
+    };
   }
 
   // ── Session ────────────────────────────────────────────
@@ -221,10 +284,10 @@ const VoltAuth = (() => {
     return users
       .filter(u => u.role === "user")
       .map(u => ({
-        username:    u.username,
-        room:        u.room,
+        username: u.username,
+        room: u.room,
         displayName: u.displayName,
-        pin:         u.pin || `room${u.room}pass`
+        pin: u.pin || `room${u.room}pass`
       }));
   }
 
@@ -314,11 +377,11 @@ const VoltAuth = (() => {
     }
 
     users.push({
-      username:    username.toLowerCase(),
+      username: username.toLowerCase(),
       passwordHash: await hashPassword(pin),
-      pin:         pin,
-      role:        "user",
-      room:        roomId,
+      pin: pin,
+      role: "user",
+      room: roomId,
       displayName: displayName || `Room ${roomId} Tenant`
     });
 
@@ -337,7 +400,7 @@ const VoltAuth = (() => {
     if (existing) return;
     const defaultRooms = [
       { id: 1, name: "Room 1", credit: 73.20, remainingKwh: 6.80, relay: true, power: 1067.0, totalEnergy: 12.44 },
-      { id: 2, name: "Room 2", credit: 18.50, remainingKwh: 1.72, relay: true, power: 0,      totalEnergy: 8.91  }
+      { id: 2, name: "Room 2", credit: 18.50, remainingKwh: 1.72, relay: true, power: 0, totalEnergy: 8.91 }
     ];
     localStorage.setItem(ROOMS_KEY, JSON.stringify(defaultRooms));
   }
