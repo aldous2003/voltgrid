@@ -190,7 +190,6 @@
                 <th>Room</th>
                 <th>Username</th>
                 <th>PIN</th>
-                <th>Display Name</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -386,7 +385,6 @@
           <td><span class="room-badge">Room ${user.room}</span></td>
           <td><code class="username-code">${user.username}</code></td>
           <td><code class="username-code">${user.pin || 'Unknown'}</code></td>
-          <td>${user.displayName}</td>
           <td style="display: flex; gap: 8px;">
             <button class="table-action-btn" onclick="openChangePinModal(${user.room}, '${user.displayName}')">
               🔑 Change PIN
