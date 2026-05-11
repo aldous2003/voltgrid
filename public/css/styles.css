@@ -2043,6 +2043,18 @@ img {
   box-shadow: 0 0 10px rgba(0, 230, 118, 0.12);
 }
 
+.table-action-btn.danger {
+  background: rgba(255, 61, 61, 0.08);
+  border-color: rgba(255, 61, 61, 0.2);
+  color: var(--red);
+}
+
+.table-action-btn.danger:hover {
+  background: rgba(255, 61, 61, 0.15);
+  border-color: var(--red);
+  box-shadow: 0 0 10px rgba(255, 61, 61, 0.12);
+}
+
 /* ── Admin Security Rows ── */
 .admin-security-row {
   display: flex;

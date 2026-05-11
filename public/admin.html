@@ -182,6 +182,7 @@
               <tr>
                 <th>Room</th>
                 <th>Username</th>
+                <th>Password</th>
                 <th>Display Name</th>
                 <th>Actions</th>
               </tr>
@@ -351,15 +352,32 @@
         tr.innerHTML = `
           <td><span class="room-badge">Room ${user.room}</span></td>
           <td><code class="username-code">${user.username}</code></td>
+          <td><code class="username-code">${user.pin || 'Unknown'}</code></td>
           <td>${user.displayName}</td>
-          <td>
+          <td style="display: flex; gap: 8px;">
             <button class="table-action-btn" onclick="openChangePinModal(${user.room}, '${user.displayName}')">
               🔑 Change PIN
+            </button>
+            <button class="table-action-btn danger" onclick="deleteRoomHandler(${user.room}, '${user.displayName}')">
+              🗑 Delete
             </button>
           </td>
         `;
         tbody.appendChild(tr);
       });
+    }
+
+    function deleteRoomHandler(roomId, displayName) {
+      if (confirm(`Are you sure you want to permanently delete ${displayName} (Room ${roomId})?\nThis action cannot be undone.`)) {
+        VoltAuth.deleteRoom(roomId);
+        loadRoomUsersTable();
+        if (typeof reloadDashboardRooms === 'function') {
+          reloadDashboardRooms();
+        }
+        if (typeof addEventToLog === 'function') {
+          addEventToLog({ type: 'warn', message: `Room ${roomId} was deleted by Admin`, timestamp: Date.now() });
+        }
+      }
     }
 
     // ── Modal Helpers ────────────────────────────────────

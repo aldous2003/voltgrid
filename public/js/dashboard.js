@@ -27,7 +27,7 @@ function loadRoomConfigs() {
   // Fallback defaults
   return [
     { id: 1, name: "Room 1", credit: 73.20, remainingKwh: 6.80, relay: true, power: 1067.0, totalEnergy: 12.44 },
-    { id: 2, name: "Room 2", credit: 18.50, remainingKwh: 1.72, relay: true, power: 0,      totalEnergy: 8.91  }
+    { id: 2, name: "Room 2", credit: 18.50, remainingKwh: 1.72, relay: true, power: 0, totalEnergy: 8.91 }
   ];
 }
 
@@ -45,10 +45,10 @@ const ROOM_COLORS = [
 
 // ── Generate demo analytics data for a set of rooms ──────
 function generateDemoAnalytics(rooms) {
-  const dayLabels   = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const weekLabels  = ["Wk 1", "Wk 2", "Wk 3", "Wk 4"];
+  const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const weekLabels = ["Wk 1", "Wk 2", "Wk 3", "Wk 4"];
   const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const yearLabels  = ["2021", "2022", "2023", "2024", "2025"];
+  const yearLabels = ["2021", "2022", "2023", "2024", "2025"];
 
   function buildEntries(labels, baseMin, baseMax) {
     return labels.map(label => {
@@ -61,22 +61,22 @@ function generateDemoAnalytics(rooms) {
   }
 
   return {
-    dailyData:   buildEntries(dayLabels,   1.2, 5.2),
-    weeklyData:  buildEntries(weekLabels,  13, 26),
+    dailyData: buildEntries(dayLabels, 1.2, 5.2),
+    weeklyData: buildEntries(weekLabels, 13, 26),
     monthlyData: buildEntries(monthLabels, 58, 115),
-    yearlyData:  buildEntries(yearLabels,  800, 1250)
+    yearlyData: buildEntries(yearLabels, 800, 1250)
   };
 }
 
 // ── Demo / Simulation State ──────────────────────────────
 const DEMO = {
-  voltage:     220.0,
-  current:     4.85,
-  power:       1067.0,
-  energy:      12.44,
-  frequency:   60.0,
+  voltage: 220.0,
+  current: 4.85,
+  power: 1067.0,
+  energy: 12.44,
+  frequency: 60.0,
   powerFactor: 0.99,
-  relay:       true,
+  relay: true,
   selectedRoom: 1,
   rooms: []
 };
@@ -86,26 +86,26 @@ function initDemoState() {
   const configs = loadRoomConfigs();
   DEMO.rooms = configs.map(r => ({ ...r }));
   const analytics = generateDemoAnalytics(DEMO.rooms);
-  DEMO.dailyData   = analytics.dailyData;
-  DEMO.weeklyData  = analytics.weeklyData;
+  DEMO.dailyData = analytics.dailyData;
+  DEMO.weeklyData = analytics.weeklyData;
   DEMO.monthlyData = analytics.monthlyData;
-  DEMO.yearlyData  = analytics.yearlyData;
+  DEMO.yearlyData = analytics.yearlyData;
 }
 
 initDemoState();
 
 // ── Runtime State ────────────────────────────────────────
-let updateCount    = 0;
-let sessionStart   = Date.now();
+let updateCount = 0;
+let sessionStart = Date.now();
 let uptimeInterval = null;
 
 // ── Telemetry bar max values for % calculation ───────────
 const T_MAX = {
-  voltage:     250,
-  current:     20,
-  power:       4400,
-  energy:      100,
-  frequency:   70,
+  voltage: 250,
+  current: 20,
+  power: 4400,
+  energy: 100,
+  frequency: 70,
   powerFactor: 1
 };
 
@@ -120,10 +120,10 @@ function updateTelemetry(data) {
   const vals = {
     voltage: data.voltage,
     current: data.current,
-    power:   data.power,
-    energy:  data.energy,
-    freq:    data.frequency,
-    pf:      data.powerFactor
+    power: data.power,
+    energy: data.energy,
+    freq: data.frequency,
+    pf: data.powerFactor
   };
 
   for (const key of fields) {
@@ -142,12 +142,12 @@ function updateTelemetry(data) {
 
   // update progress bars
   const barKeys = {
-    "bar-voltage": data.voltage     / T_MAX.voltage,
-    "bar-current": data.current     / T_MAX.current,
-    "bar-power":   data.power       / T_MAX.power,
-    "bar-energy":  (data.energy % 10) / 10,
-    "bar-freq":    data.frequency   / T_MAX.frequency,
-    "bar-pf":      data.powerFactor / T_MAX.powerFactor
+    "bar-voltage": data.voltage / T_MAX.voltage,
+    "bar-current": data.current / T_MAX.current,
+    "bar-power": data.power / T_MAX.power,
+    "bar-energy": (data.energy % 10) / 10,
+    "bar-freq": data.frequency / T_MAX.frequency,
+    "bar-pf": data.powerFactor / T_MAX.powerFactor
   };
   for (const [id, ratio] of Object.entries(barKeys)) {
     const bar = document.getElementById(id);
@@ -184,19 +184,19 @@ function updateAllRooms(rooms) {
 
 // ── Event Log ────────────────────────────────────────────
 const EVENT_ICON_MAP = {
-  "relay_on":  "🟢",
+  "relay_on": "🟢",
   "relay_off": "🔴",
-  "credit":    "💰",
-  "login":     "🔑",
-  "warn":      "⚠️"
+  "credit": "💰",
+  "login": "🔑",
+  "warn": "⚠️"
 };
 
 const INITIAL_EVENTS = [
-  { type: "login",     message: "Admin login — dashboard connected",       timestamp: Date.now() - 180000 },
-  { type: "relay_on",  message: "Relay ON — Room 1 activated",              timestamp: Date.now() - 150000 },
-  { type: "credit",    message: "Credit top-up ₱50.00 — Room 1",           timestamp: Date.now() - 120000 },
-  { type: "relay_on",  message: "Relay ON — Room 2 activated",              timestamp: Date.now() - 90000  },
-  { type: "warn",      message: "Low credit warning — Room 2 (₱20.00)",    timestamp: Date.now() - 30000  }
+  { type: "login", message: "Admin login — dashboard connected", timestamp: Date.now() - 180000 },
+  { type: "relay_on", message: "Relay ON — Room 1 activated", timestamp: Date.now() - 150000 },
+  { type: "credit", message: "Credit top-up ₱50.00 — Room 1", timestamp: Date.now() - 120000 },
+  { type: "relay_on", message: "Relay ON — Room 2 activated", timestamp: Date.now() - 90000 },
+  { type: "warn", message: "Low credit warning — Room 2 (₱20.00)", timestamp: Date.now() - 30000 }
 ];
 
 function formatEventTime(ts) {
@@ -208,7 +208,7 @@ function addEventToLog(event) {
   if (!log) return;
 
   const el = document.createElement("div");
-  el.className = `event-item ev-${event.type.replace("_","-")}`;
+  el.className = `event-item ev-${event.type.replace("_", "-")}`;
   el.innerHTML = `
     <span class="event-icon">${EVENT_ICON_MAP[event.type] || "ℹ️"}</span>
     <div class="event-body">
@@ -245,44 +245,44 @@ function startUptime() {
 // ── Demo simulation loop ─────────────────────────────────
 let _demoTick = 0;
 const RANDOM_EVENTS = [
-  { type: "credit",    message: "Credit top-up ₱20.00 — Room 2" },
-  { type: "warn",      message: "Low credit warning — Room 2 (₱10.00)" },
+  { type: "credit", message: "Credit top-up ₱20.00 — Room 2" },
+  { type: "warn", message: "Low credit warning — Room 2 (₱10.00)" },
   { type: "relay_off", message: "Relay OFF — Room 2 credit depleted" },
-  { type: "relay_on",  message: "Relay ON — Room 2 credit restored" },
-  { type: "credit",    message: "Credit top-up ₱100.00 — Room 1" }
+  { type: "relay_on", message: "Relay ON — Room 2 credit restored" },
+  { type: "credit", message: "Credit top-up ₱100.00 — Room 1" }
 ];
 let _nextEventIndex = 0;
 
 function runDemoSimulation() {
   // Fluctuate telemetry
-  DEMO.voltage     = fluctuate(220, 4);
-  DEMO.current     = fluctuate(4.85, 0.8);
-  DEMO.power       = +(DEMO.voltage * DEMO.current * DEMO.powerFactor).toFixed(1);
-  DEMO.energy      = +(DEMO.energy + DEMO.power / 3600000).toFixed(6);
-  DEMO.frequency   = fluctuate(60, 0.3);
+  DEMO.voltage = fluctuate(220, 4);
+  DEMO.current = fluctuate(4.85, 0.8);
+  DEMO.power = +(DEMO.voltage * DEMO.current * DEMO.powerFactor).toFixed(1);
+  DEMO.energy = +(DEMO.energy + DEMO.power / 3600000).toFixed(6);
+  DEMO.frequency = fluctuate(60, 0.3);
   DEMO.powerFactor = Math.min(1, fluctuate(0.99, 0.04));
 
   // Simulate all rooms dynamically
   DEMO.rooms.forEach((room, i) => {
     if (i === 0) {
       // Room 1: active with power draw
-      room.power       = DEMO.power;
-      room.credit      = Math.max(0, +(room.credit - DEMO.power / 3600 / 10).toFixed(4));
-      room.remainingKwh= Math.max(0, +(room.credit / 10.75).toFixed(4));
+      room.power = DEMO.power;
+      room.credit = Math.max(0, +(room.credit - DEMO.power / 3600 / 10).toFixed(4));
+      room.remainingKwh = Math.max(0, +(room.credit / 10.75).toFixed(4));
       room.totalEnergy = DEMO.energy;
     } else {
       // Other rooms: slow credit drain
-      room.credit      = Math.max(0, +(room.credit - 0.001).toFixed(4));
-      room.remainingKwh= Math.max(0, +(room.credit / 10.75).toFixed(4));
+      room.credit = Math.max(0, +(room.credit - 0.001).toFixed(4));
+      room.remainingKwh = Math.max(0, +(room.credit / 10.75).toFixed(4));
     }
   });
 
   updateTelemetry({
-    voltage:     DEMO.voltage,
-    current:     DEMO.current,
-    power:       DEMO.power,
-    energy:      DEMO.energy,
-    frequency:   DEMO.frequency,
+    voltage: DEMO.voltage,
+    current: DEMO.current,
+    power: DEMO.power,
+    energy: DEMO.energy,
+    frequency: DEMO.frequency,
     powerFactor: DEMO.powerFactor
   });
   updateAllRooms(DEMO.rooms);
@@ -344,6 +344,43 @@ function reloadDashboardRooms() {
     analyticsChart.update();
   }
 }
+
+// ── Global Handlers for Admin Panel ──────────────────────
+window.adminUpdateCredit = function(roomId, amount) {
+  const room = DEMO.rooms.find(r => r.id === roomId);
+  if (!room) return false;
+  
+  room.credit = +(room.credit + amount).toFixed(4);
+  room.remainingKwh = +(room.credit / 10.75).toFixed(4);
+  
+  if (typeof VoltAuth !== 'undefined' && VoltAuth.updateRoomConfig) {
+    VoltAuth.updateRoomConfig(roomId, { credit: room.credit, remainingKwh: room.remainingKwh });
+  }
+  
+  updateAllRooms(DEMO.rooms);
+  if (amount > 0) {
+    addEventToLog({ type: 'credit', message: `Admin topped up ₱${amount.toFixed(2)} — Room ${roomId}`, timestamp: Date.now() });
+  } else {
+    addEventToLog({ type: 'warn', message: `Admin deducted ₱${Math.abs(amount).toFixed(2)} — Room ${roomId}`, timestamp: Date.now() });
+  }
+  return true;
+};
+
+window.adminSetRelay = function(roomId, state) {
+  const room = DEMO.rooms.find(r => r.id === roomId);
+  if (!room) return false;
+  
+  room.relay = state;
+  
+  if (typeof VoltAuth !== 'undefined' && VoltAuth.updateRoomConfig) {
+    VoltAuth.updateRoomConfig(roomId, { relay: room.relay });
+  }
+  
+  updateAllRooms(DEMO.rooms);
+  const stateStr = state ? 'ON' : 'OFF';
+  addEventToLog({ type: state ? 'relay_on' : 'relay_off', message: `Admin forced Relay ${stateStr} — Room ${roomId}`, timestamp: Date.now() });
+  return true;
+};
 
 // ── Init ─────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {

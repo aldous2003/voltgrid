@@ -57,6 +57,7 @@ const VoltAuth = (() => {
       users.push({
         username:    def.username,
         passwordHash: await hashPassword(def.defaultPassword),
+        pin:         def.defaultPassword,
         role:        def.role,
         room:        def.room,
         displayName: def.displayName
@@ -214,7 +215,10 @@ const VoltAuth = (() => {
       .map(u => ({
         username:    u.username,
         room:        u.room,
-        displayName: u.displayName
+        username:    u.username,
+        room:        u.room,
+        displayName: u.displayName,
+        pin:         u.pin
       }));
   }
 
@@ -242,6 +246,7 @@ const VoltAuth = (() => {
     }
 
     users[userIndex].passwordHash = await hashPassword(pin);
+    users[userIndex].pin = pin;
     saveUsers(users);
 
     return { success: true };
@@ -305,6 +310,7 @@ const VoltAuth = (() => {
     users.push({
       username:    username.toLowerCase(),
       passwordHash: await hashPassword(pin),
+      pin:         pin,
       role:        "user",
       room:        roomId,
       displayName: displayName || `Room ${roomId} Tenant`
@@ -365,6 +371,20 @@ const VoltAuth = (() => {
   }
 
   /**
+   * Update an existing room config.
+   * @param {number} roomId
+   * @param {Object} updates
+   */
+  function updateRoomConfig(roomId, updates) {
+    const rooms = getRoomConfigs();
+    const index = rooms.findIndex(r => r.id === roomId);
+    if (index !== -1) {
+      rooms[index] = { ...rooms[index], ...updates };
+      localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms));
+    }
+  }
+
+  /**
    * Get the next available room ID.
    * @returns {number}
    */
@@ -392,6 +412,21 @@ const VoltAuth = (() => {
   }
 
   /**
+   * Delete a room and its user.
+   * @param {number} roomId
+   */
+  function deleteRoom(roomId) {
+    const users = getStoredUsers();
+    const updatedUsers = users.filter(u => !(u.role === "user" && u.room === roomId));
+    saveUsers(updatedUsers);
+
+    const rooms = getRoomConfigs();
+    const updatedRooms = rooms.filter(r => r.id !== roomId);
+    localStorage.setItem(ROOMS_KEY, JSON.stringify(updatedRooms));
+    return { success: true };
+  }
+
+  /**
    * Reset all users and rooms to defaults (for troubleshooting).
    */
   function resetToDefaults() {
@@ -409,8 +444,10 @@ const VoltAuth = (() => {
     redirectIfLoggedIn,
     getRoomUsers,
     getRoomConfigs,
+    updateRoomConfig,
     getNextRoomId,
     addRoom,
+    deleteRoom,
     changeRoomPin,
     changeAdminPassword,
     addRoomUser,
