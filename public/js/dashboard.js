@@ -120,8 +120,11 @@ function buildDailyFromArchive(rooms) {
     const archive = JSON.parse(raw);
     const days = Object.keys(archive).sort().slice(-7);
     if (days.length === 0) return null;
+    const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     return days.map(date => {
-      const entry = { label: date, _archive: archive[date].hourly };
+      // Use noon time to avoid timezone-shift off-by-one errors
+      const dayName = DAY_NAMES[new Date(date + "T12:00:00").getDay()];
+      const entry = { label: dayName, _archive: archive[date].hourly };
       rooms.forEach(r => { entry[`room${r.id}`] = archive[date][`room${r.id}`] || 0; });
       return entry;
     });
@@ -130,11 +133,13 @@ function buildDailyFromArchive(rooms) {
 
 // ── Generate demo analytics data for a set of rooms ──────
 function generateDemoAnalytics(rooms) {
-  const dayLabels   = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-  const weekLabels  = ["Week 1", "Week 2", "Week 3", "Week 4"];
+  const dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const weekLabels = ["Week 1", "Week 2", "Week 3", "Week 4"];
   const monthLabels = ["January", "February", "March", "April", "May", "June",
-                       "July", "August", "September", "October", "November", "December"];
-  const yearLabels  = ["2026", "2027", "2028", "2029", "2030"];
+    "July", "August", "September", "October", "November", "December"];
+  // Dynamic year labels: always start from 2026 (or current year, whichever is later)
+  const startYear = Math.max(2026, new Date().getFullYear());
+  const yearLabels = Array.from({ length: 5 }, (_, i) => String(startYear + i));
 
   function buildEntries(labels, baseMin, baseMax) {
     return labels.map(label => {
@@ -147,10 +152,10 @@ function generateDemoAnalytics(rooms) {
   }
 
   return {
-    dailyData:   buildEntries(dayLabels,   1.2,  5.2),
-    weeklyData:  buildEntries(weekLabels,  13,   26),
-    monthlyData: buildEntries(monthLabels, 58,   115),
-    yearlyData:  buildEntries(yearLabels,  800,  1250)
+    dailyData: buildEntries(dayLabels, 1.2, 5.2),
+    weeklyData: buildEntries(weekLabels, 13, 26),
+    monthlyData: buildEntries(monthLabels, 58, 115),
+    yearlyData: buildEntries(yearLabels, 800, 1250)
   };
 }
 
@@ -529,7 +534,8 @@ window.adminSetRelay = function (roomId, state) {
 // ── Init ─────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   // Init charts (role-aware via charts.js)
-  initDailyChart(DEMO.dailyData);
+  initDailyChart(DEMO.hourlyData.hours);
+  switchAnalyticsPeriod('24h');
 
   // Init room cards
   updateAllRooms(DEMO.rooms);

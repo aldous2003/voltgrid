@@ -36,11 +36,11 @@ const CHART_COLORS = [
 
 // ── Period metadata ──────────────────────────────────────
 const PERIOD_META = {
-  "24h": { title: "24H - (Current Day Hourly)", dataKey: null },
-  daily: { title: "Daily - (Monday-Sunday)", dataKey: "dailyData" },
-  weekly: { title: "Weekly - (Week 1-4)", dataKey: "weeklyData" },
-  monthly: { title: "Monthly - (January-December)", dataKey: "monthlyData" },
-  yearly: { title: "Yearly - (2026 - etc..)", dataKey: "yearlyData" }
+  "24h": { title: "24H (Hourly Breakdown)", dataKey: null },
+  daily: { title: "Daily (Monday - Sunday)", dataKey: "dailyData" },
+  weekly: { title: "Weekly (Week 1 - week 4)", dataKey: "weeklyData" },
+  monthly: { title: "Monthly (January - December)", dataKey: "monthlyData" },
+  yearly: { title: "Yearly (Year 2026 onwards)", dataKey: "yearlyData" }
 };
 
 let currentPeriod = "24h";
@@ -74,6 +74,7 @@ function initDailyChart(data) {
       },
       scales: {
         x: {
+          type: 'category',
           grid: { display: false },
           ticks: {
             autoSkip: false,
@@ -83,6 +84,7 @@ function initDailyChart(data) {
           }
         },
         y: {
+          beginAtZero: true,
           grid: { color: "#1e3358" },
           ticks: { callback: v => v + " kWh" }
         }
@@ -116,10 +118,11 @@ function buildAnalyticsData(data) {
   const isAdmin = (typeof IS_ADMIN !== 'undefined') ? IS_ADMIN : true;
   const userRoom = (typeof USER_ROOM !== 'undefined') ? USER_ROOM : null;
 
+  const safeData = data || [];
   // Discover which rooms exist in the data
   const roomIds = [];
-  if (data && data.length > 0) {
-    const sample = data[0];
+  if (safeData.length > 0) {
+    const sample = safeData[0];
     Object.keys(sample).forEach(key => {
       const match = key.match(/^room(\d+)$/);
       if (match) roomIds.push(parseInt(match[1]));
@@ -127,12 +130,13 @@ function buildAnalyticsData(data) {
     roomIds.sort((a, b) => a - b);
   }
 
-  const safeData = data || [];
+  // Ensure labels are always strings
+  const labels = safeData.map(d => String(d.label || ""));
 
   if (isAdmin) {
     // Admin: show all rooms
     return {
-      labels: safeData.map(d => d.label),
+      labels: labels,
       datasets: roomIds.map((id, idx) => ({
         label: `Room ${id}`,
         data: safeData.map(d => d[`room${id}`] || 0),
@@ -144,7 +148,7 @@ function buildAnalyticsData(data) {
     // User: show only their room
     const color = CHART_COLORS[(userRoom - 1) % CHART_COLORS.length];
     return {
-      labels: safeData.map(d => d.label),
+      labels: labels,
       datasets: [
         {
           label: `Room ${userRoom}`,
@@ -196,18 +200,20 @@ function switchAnalyticsPeriod(period) {
   if (period === '24h') {
     data = (DEMO.hourlyData && DEMO.hourlyData.hours) ? DEMO.hourlyData.hours : [];
     // Highlight the current hour's bar
-    analyticsChart.options.scales.x.ticks = {
-      callback: function (val, idx) {
-        const now = new Date().getHours();
-        return idx === now ? `▶ ${data[idx] ? data[idx].label : val}` : (data[idx] ? data[idx].label : val);
-      }
+    analyticsChart.options.scales.x.ticks.callback = function (val, idx) {
+      const now = new Date().getHours();
+      const label = data[idx] ? data[idx].label : "";
+      return idx === now ? `▶ ${label}` : label;
     };
   } else {
     data = DEMO[PERIOD_META[period].dataKey];
-    analyticsChart.options.scales.x.ticks = { callback: undefined };
+    // Remove custom callback to show default labels from the data object
+    delete analyticsChart.options.scales.x.ticks.callback;
   }
 
-  analyticsChart.data = buildAnalyticsData(data);
+  const newData = buildAnalyticsData(data);
+  analyticsChart.data.labels = newData.labels;
+  analyticsChart.data.datasets = newData.datasets;
   analyticsChart.update();
 }
 
@@ -231,7 +237,7 @@ function chartDrillBack() {
   const backBtn = document.getElementById("chart-back-btn");
   if (backBtn) backBtn.style.display = "none";
 
-  analyticsChart.options.scales.x.ticks = { callback: undefined };
+  analyticsChart.options.scales.x.ticks.callback = null;
   analyticsChart.data = buildAnalyticsData(DEMO.dailyData);
   analyticsChart.update();
 }
