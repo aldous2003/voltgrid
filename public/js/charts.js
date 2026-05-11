@@ -22,16 +22,16 @@ Chart.defaults.font.size = 11;
 
 // ── Color palette for room datasets ──────────────────────
 const CHART_COLORS = [
-  "rgba(0,180,255,0.65)",
-  "rgba(0,230,118,0.65)",
-  "rgba(255,193,7,0.65)",
-  "rgba(255,87,34,0.65)",
-  "rgba(156,39,176,0.65)",
-  "rgba(0,188,212,0.65)",
-  "rgba(255,61,61,0.65)",
-  "rgba(76,175,80,0.65)",
-  "rgba(233,30,99,0.65)",
-  "rgba(121,85,72,0.65)"
+  "rgba(0,180,255,0.85)",
+  "rgba(0,230,118,0.85)",
+  "rgba(255,193,7,0.85)",
+  "rgba(255,87,34,0.85)",
+  "rgba(156,39,176,0.85)",
+  "rgba(0,188,212,0.85)",
+  "rgba(255,61,61,0.85)",
+  "rgba(76,175,80,0.85)",
+  "rgba(233,30,99,0.85)",
+  "rgba(121,85,72,0.85)"
 ];
 
 // ── Period metadata ──────────────────────────────────────
@@ -51,22 +51,70 @@ let _drillDownDate = null; // null = not drilling, "YYYY-MM-DD" = showing that d
 // ── 1. Analytics Chart ──────────────────────────────────
 let analyticsChart = null;
 
+// ── Custom Crosshair Plugin ──────────────────────────────
+const crosshairPlugin = {
+  id: 'crosshair',
+  afterDraw: (chart) => {
+    if (chart.crosshairX && chart.crosshairY) {
+      const { ctx } = chart;
+      const { top, bottom, left, right } = chart.chartArea;
+      const x = chart.crosshairX;
+      const y = chart.crosshairY;
+
+      // Only draw if within chart area
+      if (x >= left && x <= right && y >= top && y <= bottom) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(0, 180, 255, 0.4)';
+
+        // Vertical line
+        ctx.moveTo(x, top);
+        ctx.lineTo(x, bottom);
+
+        // Horizontal line
+        ctx.moveTo(left, y);
+        ctx.lineTo(right, y);
+
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+};
+
 function initDailyChart(data) {
   const ctx = document.getElementById("chart-daily");
   if (!ctx) return;
 
   analyticsChart = new Chart(ctx, {
-    type: "bar",
+    type: "line",
     data: buildAnalyticsData(data),
+    plugins: [crosshairPlugin],
     options: {
       responsive: true,
       animation: { duration: 350 },
+      interaction: {
+        mode: 'nearest',
+        intersect: true,
+      },
+      onHover: (event, elements, chart) => {
+        if (event.x !== undefined && event.y !== undefined) {
+          chart.crosshairX = event.x;
+          chart.crosshairY = event.y;
+          chart.draw();
+        }
+      },
       plugins: {
         legend: {
           display: true,
           labels: { boxWidth: 12, padding: 16 }
         },
         tooltip: {
+          enabled: true,
+          animation: false,
+          position: 'nearest',
           callbacks: {
             label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)} kWh`
           }
@@ -141,7 +189,14 @@ function buildAnalyticsData(data) {
         label: `Room ${id}`,
         data: safeData.map(d => d[`room${id}`] || 0),
         backgroundColor: CHART_COLORS[idx % CHART_COLORS.length],
-        borderRadius: 4
+        borderColor: CHART_COLORS[idx % CHART_COLORS.length],
+        borderWidth: 2.5,
+        fill: false,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: CHART_COLORS[idx % CHART_COLORS.length],
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: "#fff"
       }))
     };
   } else {
@@ -154,7 +209,14 @@ function buildAnalyticsData(data) {
           label: `Room ${userRoom}`,
           data: safeData.map(d => d[`room${userRoom}`] || 0),
           backgroundColor: color,
-          borderRadius: 4
+          borderColor: color,
+          borderWidth: 2.5,
+          fill: false,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: color,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: "#fff"
         }
       ]
     };
