@@ -1585,6 +1585,17 @@ img {
   min-width: 0;
 }
 
+/* Autofill cleaning */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus,
+.form-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg3) inset !important;
+  -webkit-text-fill-color: var(--text) !important;
+  transition: background-color 5000s ease-in-out 0s;
+  border-radius: var(--radius);
+}
+
 .form-input::placeholder {
   color: var(--text3);
   font-size: 13px;
