@@ -123,16 +123,23 @@
 
       <div class="chart-card wide">
         <div class="chart-card-header">
-          <div class="chart-title" id="chart-period-title">Daily Energy Consumption (kWh)</div>
-          <div class="chart-tabs" role="tablist" aria-label="Energy analysis period">
-            <button class="chart-tab active" id="tab-daily" data-period="daily" onclick="switchAnalyticsPeriod('daily')"
-              role="tab" aria-selected="true">Daily</button>
-            <button class="chart-tab" id="tab-weekly" data-period="weekly" onclick="switchAnalyticsPeriod('weekly')"
-              role="tab" aria-selected="false">Weekly</button>
-            <button class="chart-tab" id="tab-monthly" data-period="monthly" onclick="switchAnalyticsPeriod('monthly')"
-              role="tab" aria-selected="false">Monthly</button>
-            <button class="chart-tab" id="tab-yearly" data-period="yearly" onclick="switchAnalyticsPeriod('yearly')"
-              role="tab" aria-selected="false">Yearly</button>
+          <div class="chart-title" id="chart-period-title">24-Hour Energy (kWh) — Today</div>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div class="chart-tabs" role="tablist" aria-label="Energy analysis period">
+              <button class="chart-tab active" id="tab-24h" data-period="24h" onclick="switchAnalyticsPeriod('24h')"
+                role="tab" aria-selected="true">24H</button>
+              <button class="chart-tab" id="tab-daily" data-period="daily" onclick="switchAnalyticsPeriod('daily')"
+                role="tab" aria-selected="false">Daily</button>
+              <button class="chart-tab" id="tab-weekly" data-period="weekly" onclick="switchAnalyticsPeriod('weekly')"
+                role="tab" aria-selected="false">Weekly</button>
+              <button class="chart-tab" id="tab-monthly" data-period="monthly"
+                onclick="switchAnalyticsPeriod('monthly')" role="tab" aria-selected="false">Monthly</button>
+              <button class="chart-tab" id="tab-yearly" data-period="yearly" onclick="switchAnalyticsPeriod('yearly')"
+                role="tab" aria-selected="false">Yearly</button>
+            </div>
+            <button id="chart-back-btn" onclick="chartDrillBack()"
+              style="display:none; align-items:center; gap:6px; padding:5px 12px; background:rgba(0,180,255,0.1); border:1px solid var(--accent); border-radius:6px; color:var(--accent); font-family:var(--mono); font-size:11px; cursor:pointer;">←
+              Back to Daily</button>
           </div>
         </div>
         <canvas id="chart-daily" height="180"></canvas>

@@ -43,12 +43,98 @@ const ROOM_COLORS = [
   "rgba(76,175,80,0.65)"
 ];
 
+// ── 24H Hourly Analytics Storage ────────────────────────
+const HOURLY_KEY = "voltgrid_hourly";
+const ARCHIVE_KEY = "voltgrid_daily_archive";
+
+/**
+ * Load or create today's hourly energy log.
+ * Structure: { date: "YYYY-MM-DD", hours: [{label:"00:00", room1:0, room2:0, ...}, ...x24] }
+ */
+function getTodayHourly(rooms) {
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const raw = localStorage.getItem(HOURLY_KEY);
+    if (raw) {
+      const stored = JSON.parse(raw);
+      if (stored.date === today) return stored;
+      // It's a new day — archive yesterday's data first
+      archiveDailyData(stored, rooms);
+    }
+  } catch { /* ignore */ }
+  // Create a fresh 24-slot structure for today
+  return buildEmptyHourly(today, rooms);
+}
+
+function buildEmptyHourly(date, rooms) {
+  const hours = Array.from({ length: 24 }, (_, h) => {
+    const entry = { label: String(h).padStart(2, "0") + ":00" };
+    rooms.forEach(r => { entry[`room${r.id}`] = 0; });
+    return entry;
+  });
+  return { date, hours };
+}
+
+/**
+ * Persist the current accumulated kWh value for the current hour.
+ * Called from the simulation loop every tick.
+ */
+function saveCurrentHour(rooms) {
+  const h = new Date().getHours();
+  if (!DEMO.hourlyData) return;
+  rooms.forEach(r => {
+    DEMO.hourlyData.hours[h][`room${r.id}`] = +(r.totalEnergy * 0.01).toFixed(4);
+  });
+  localStorage.setItem(HOURLY_KEY, JSON.stringify(DEMO.hourlyData));
+}
+
+/**
+ * Move yesterday's hourly totals into the daily archive keyed by date.
+ * The dailyData array is then updated to include that archived day's total.
+ */
+function archiveDailyData(hourlyRecord, rooms) {
+  try {
+    const raw = localStorage.getItem(ARCHIVE_KEY);
+    const archive = raw ? JSON.parse(raw) : {};
+    // Sum each room's total for the day
+    const daySummary = { label: hourlyRecord.date, hourly: hourlyRecord.hours };
+    rooms.forEach(r => {
+      daySummary[`room${r.id}`] = +hourlyRecord.hours
+        .reduce((sum, h) => sum + (h[`room${r.id}`] || 0), 0).toFixed(2);
+    });
+    archive[hourlyRecord.date] = daySummary;
+    // Keep max 90 days
+    const keys = Object.keys(archive).sort();
+    if (keys.length > 90) delete archive[keys[0]];
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive));
+  } catch { /* ignore */ }
+}
+
+/**
+ * Build the dailyData from the archive (last 7 days).
+ */
+function buildDailyFromArchive(rooms) {
+  try {
+    const raw = localStorage.getItem(ARCHIVE_KEY);
+    if (!raw) return null;
+    const archive = JSON.parse(raw);
+    const days = Object.keys(archive).sort().slice(-7);
+    if (days.length === 0) return null;
+    return days.map(date => {
+      const entry = { label: date, _archive: archive[date].hourly };
+      rooms.forEach(r => { entry[`room${r.id}`] = archive[date][`room${r.id}`] || 0; });
+      return entry;
+    });
+  } catch { return null; }
+}
+
 // ── Generate demo analytics data for a set of rooms ──────
 function generateDemoAnalytics(rooms) {
-  const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const weekLabels = ["Wk 1", "Wk 2", "Wk 3", "Wk 4"];
-  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const yearLabels = ["2021", "2022", "2023", "2024", "2025"];
+  const dayLabels   = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const weekLabels  = ["Week 1", "Week 2", "Week 3", "Week 4"];
+  const monthLabels = ["January", "February", "March", "April", "May", "June",
+                       "July", "August", "September", "October", "November", "December"];
+  const yearLabels  = ["2026", "2027", "2028", "2029", "2030"];
 
   function buildEntries(labels, baseMin, baseMax) {
     return labels.map(label => {
@@ -61,10 +147,10 @@ function generateDemoAnalytics(rooms) {
   }
 
   return {
-    dailyData: buildEntries(dayLabels, 1.2, 5.2),
-    weeklyData: buildEntries(weekLabels, 13, 26),
-    monthlyData: buildEntries(monthLabels, 58, 115),
-    yearlyData: buildEntries(yearLabels, 800, 1250)
+    dailyData:   buildEntries(dayLabels,   1.2,  5.2),
+    weeklyData:  buildEntries(weekLabels,  13,   26),
+    monthlyData: buildEntries(monthLabels, 58,   115),
+    yearlyData:  buildEntries(yearLabels,  800,  1250)
   };
 }
 
@@ -86,13 +172,17 @@ function initDemoState() {
   const configs = loadRoomConfigs();
   DEMO.rooms = configs.map(r => ({ ...r }));
   const analytics = generateDemoAnalytics(DEMO.rooms);
-  DEMO.dailyData = analytics.dailyData;
+  // Try to load real archived daily data; fall back to generated demo data
+  DEMO.dailyData = buildDailyFromArchive(DEMO.rooms) || analytics.dailyData;
   DEMO.weeklyData = analytics.weeklyData;
   DEMO.monthlyData = analytics.monthlyData;
   DEMO.yearlyData = analytics.yearlyData;
+  // 24H hourly: load or create for today
+  DEMO.hourlyData = getTodayHourly(DEMO.rooms);
 }
 
 initDemoState();
+
 
 // ── Runtime State ────────────────────────────────────────
 let updateCount = 0;
@@ -325,6 +415,30 @@ function runDemoSimulation() {
     addEventToLog({ ...ev, timestamp: Date.now() });
     _nextEventIndex++;
   }
+
+  // Save current hour's kWh data every 30 ticks (~30 s)
+  if (_demoTick % 30 === 0) {
+    saveCurrentHour(DEMO.rooms);
+
+    // MIDNIGHT CHECK: If the date has changed while the app is running
+    const today = new Date().toISOString().slice(0, 10);
+    if (DEMO.hourlyData && DEMO.hourlyData.date !== today) {
+      console.info("[VoltGrid] Midnight detected. Archiving yesterday's data...");
+      archiveDailyData(DEMO.hourlyData, DEMO.rooms);
+      // Reset for new day
+      DEMO.hourlyData = buildEmptyHourly(today, DEMO.rooms);
+      localStorage.setItem(HOURLY_KEY, JSON.stringify(DEMO.hourlyData));
+      // Re-build daily data to include the newly archived day
+      DEMO.dailyData = buildDailyFromArchive(DEMO.rooms) || generateDemoAnalytics(DEMO.rooms).dailyData;
+    }
+
+    // If user is on the 24H tab, refresh the chart live
+    if (typeof currentPeriod !== 'undefined' && currentPeriod === '24h') {
+      if (typeof updateDailyChart === 'function') {
+        updateDailyChart(DEMO.hourlyData.hours);
+      }
+    }
+  }
 }
 
 // ── Firebase listeners (used when FIREBASE_READY = true) ─
@@ -376,17 +490,17 @@ function reloadDashboardRooms() {
 }
 
 // ── Global Handlers for Admin Panel ──────────────────────
-window.adminUpdateCredit = function(roomId, amount) {
+window.adminUpdateCredit = function (roomId, amount) {
   const room = DEMO.rooms.find(r => r.id === roomId);
   if (!room) return false;
-  
+
   room.credit = +(room.credit + amount).toFixed(4);
   room.remainingKwh = +(room.credit / 10.75).toFixed(4);
-  
+
   if (typeof VoltAuth !== 'undefined' && VoltAuth.updateRoomConfig) {
     VoltAuth.updateRoomConfig(roomId, { credit: room.credit, remainingKwh: room.remainingKwh });
   }
-  
+
   updateAllRooms(DEMO.rooms);
   if (amount > 0) {
     addEventToLog({ type: 'credit', message: `Admin topped up ₱${amount.toFixed(2)} — Room ${roomId}`, roomId });
@@ -396,16 +510,16 @@ window.adminUpdateCredit = function(roomId, amount) {
   return true;
 };
 
-window.adminSetRelay = function(roomId, state) {
+window.adminSetRelay = function (roomId, state) {
   const room = DEMO.rooms.find(r => r.id === roomId);
   if (!room) return false;
-  
+
   room.relay = state;
-  
+
   if (typeof VoltAuth !== 'undefined' && VoltAuth.updateRoomConfig) {
     VoltAuth.updateRoomConfig(roomId, { relay: room.relay });
   }
-  
+
   updateAllRooms(DEMO.rooms);
   const stateStr = state ? 'ON' : 'OFF';
   addEventToLog({ type: state ? 'relay_on' : 'relay_off', message: `Admin forced Relay ${stateStr} — Room ${roomId}`, roomId });

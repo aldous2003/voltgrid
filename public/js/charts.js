@@ -5,18 +5,20 @@
  *
  * Charts:
  *   1. analyticsChart — Energy kWh analysis (bar, per room)
- *                       Supports Daily / Weekly / Monthly / Yearly tabs
+ *                       Supports 24H / Daily / Weekly / Monthly / Yearly tabs
  *                       Role-aware: shows all rooms for admin,
  *                       only the user's room for user role.
  *                       Dynamic: supports any number of rooms.
+ *                       24H: shows live hourly data; Daily bars are
+ *                       clickable to drill-down into that day's hourly data.
  * ─────────────────────────────────────────────────────────
  */
 
 // ── Shared Chart Theme ───────────────────────────────────
-Chart.defaults.color            = "#8ba3c7";
-Chart.defaults.borderColor      = "#1e3358";
-Chart.defaults.font.family      = "'Space Mono', monospace";
-Chart.defaults.font.size        = 11;
+Chart.defaults.color = "#8ba3c7";
+Chart.defaults.borderColor = "#1e3358";
+Chart.defaults.font.family = "'Space Mono', monospace";
+Chart.defaults.font.size = 11;
 
 // ── Color palette for room datasets ──────────────────────
 const CHART_COLORS = [
@@ -34,15 +36,19 @@ const CHART_COLORS = [
 
 // ── Period metadata ──────────────────────────────────────
 const PERIOD_META = {
-  daily:   { title: "Daily Energy Consumption (kWh)",   dataKey: "dailyData" },
-  weekly:  { title: "Weekly Energy Consumption (kWh)",  dataKey: "weeklyData" },
-  monthly: { title: "Monthly Energy Consumption (kWh)", dataKey: "monthlyData" },
-  yearly:  { title: "Yearly Energy Consumption (kWh)",  dataKey: "yearlyData" }
+  "24h": { title: "24H - (Current Day Hourly)", dataKey: null },
+  daily: { title: "Daily - (Monday-Sunday)", dataKey: "dailyData" },
+  weekly: { title: "Weekly - (Week 1-4)", dataKey: "weeklyData" },
+  monthly: { title: "Monthly - (January-December)", dataKey: "monthlyData" },
+  yearly: { title: "Yearly - (2026 - etc..)", dataKey: "yearlyData" }
 };
 
-let currentPeriod = "daily";
+let currentPeriod = "24h";
 
-// ── 1. Analytics Chart (Daily / Weekly / Monthly / Yearly) ──
+// ── State for drill-down ─────────────────────────────────
+let _drillDownDate = null; // null = not drilling, "YYYY-MM-DD" = showing that day hourly
+
+// ── 1. Analytics Chart ──────────────────────────────────
 let analyticsChart = null;
 
 function initDailyChart(data) {
@@ -59,13 +65,43 @@ function initDailyChart(data) {
         legend: {
           display: true,
           labels: { boxWidth: 12, padding: 16 }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)} kWh`
+          }
         }
       },
       scales: {
-        x: { grid: { display: false } },
+        x: {
+          grid: { display: false },
+          ticks: {
+            autoSkip: false,
+            maxRotation: 45,
+            minRotation: 0,
+            font: { size: 10 }
+          }
+        },
         y: {
           grid: { color: "#1e3358" },
           ticks: { callback: v => v + " kWh" }
+        }
+      },
+      onClick: (evt, elements) => {
+        if (currentPeriod === 'daily' && elements.length > 0) {
+          const index = elements[0].index;
+          const entry = DEMO.dailyData[index];
+          if (entry && entry._archive) {
+            // Drill into this day's hourly data
+            _drillDownDate = entry.label;
+            const titleEl = document.getElementById("chart-period-title");
+            if (titleEl) titleEl.textContent = `Hourly Breakdown — ${entry.label}`;
+            analyticsChart.data = buildAnalyticsData(entry._archive);
+            analyticsChart.update();
+            // Show back button
+            const backBtn = document.getElementById("chart-back-btn");
+            if (backBtn) backBtn.style.display = "inline-flex";
+          }
         }
       }
     }
@@ -82,7 +118,7 @@ function buildAnalyticsData(data) {
 
   // Discover which rooms exist in the data
   const roomIds = [];
-  if (data.length > 0) {
+  if (data && data.length > 0) {
     const sample = data[0];
     Object.keys(sample).forEach(key => {
       const match = key.match(/^room(\d+)$/);
@@ -91,13 +127,15 @@ function buildAnalyticsData(data) {
     roomIds.sort((a, b) => a - b);
   }
 
+  const safeData = data || [];
+
   if (isAdmin) {
     // Admin: show all rooms
     return {
-      labels: data.map(d => d.label),
+      labels: safeData.map(d => d.label),
       datasets: roomIds.map((id, idx) => ({
         label: `Room ${id}`,
-        data: data.map(d => d[`room${id}`] || 0),
+        data: safeData.map(d => d[`room${id}`] || 0),
         backgroundColor: CHART_COLORS[idx % CHART_COLORS.length],
         borderRadius: 4
       }))
@@ -106,11 +144,11 @@ function buildAnalyticsData(data) {
     // User: show only their room
     const color = CHART_COLORS[(userRoom - 1) % CHART_COLORS.length];
     return {
-      labels: data.map(d => d.label),
+      labels: safeData.map(d => d.label),
       datasets: [
         {
           label: `Room ${userRoom}`,
-          data: data.map(d => d[`room${userRoom}`] || 0),
+          data: safeData.map(d => d[`room${userRoom}`] || 0),
           backgroundColor: color,
           borderRadius: 4
         }
@@ -131,11 +169,12 @@ function updateDailyChart(data) {
 
 /**
  * Switch the analytics chart to a different time period.
- * @param {'daily'|'weekly'|'monthly'|'yearly'} period
+ * @param {'24h'|'daily'|'weekly'|'monthly'|'yearly'} period
  */
 function switchAnalyticsPeriod(period) {
   if (!analyticsChart || !DEMO || !(period in PERIOD_META)) return;
   currentPeriod = period;
+  _drillDownDate = null;
 
   // Update active tab styling
   document.querySelectorAll(".chart-tab").forEach(btn => {
@@ -148,8 +187,51 @@ function switchAnalyticsPeriod(period) {
   const titleEl = document.getElementById("chart-period-title");
   if (titleEl) titleEl.textContent = PERIOD_META[period].title;
 
-  // Swap chart data with smooth animation
-  const data = DEMO[PERIOD_META[period].dataKey];
+  // Hide back button
+  const backBtn = document.getElementById("chart-back-btn");
+  if (backBtn) backBtn.style.display = "none";
+
+  // Swap chart data
+  let data;
+  if (period === '24h') {
+    data = (DEMO.hourlyData && DEMO.hourlyData.hours) ? DEMO.hourlyData.hours : [];
+    // Highlight the current hour's bar
+    analyticsChart.options.scales.x.ticks = {
+      callback: function (val, idx) {
+        const now = new Date().getHours();
+        return idx === now ? `▶ ${data[idx] ? data[idx].label : val}` : (data[idx] ? data[idx].label : val);
+      }
+    };
+  } else {
+    data = DEMO[PERIOD_META[period].dataKey];
+    analyticsChart.options.scales.x.ticks = { callback: undefined };
+  }
+
   analyticsChart.data = buildAnalyticsData(data);
+  analyticsChart.update();
+}
+
+/**
+ * Go back from a drill-down view to the daily chart.
+ */
+function chartDrillBack() {
+  if (!analyticsChart) return;
+  _drillDownDate = null;
+  currentPeriod = 'daily';
+
+  document.querySelectorAll(".chart-tab").forEach(btn => {
+    const isActive = btn.dataset.period === 'daily';
+    btn.classList.toggle("active", isActive);
+    btn.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
+  const titleEl = document.getElementById("chart-period-title");
+  if (titleEl) titleEl.textContent = PERIOD_META.daily.title;
+
+  const backBtn = document.getElementById("chart-back-btn");
+  if (backBtn) backBtn.style.display = "none";
+
+  analyticsChart.options.scales.x.ticks = { callback: undefined };
+  analyticsChart.data = buildAnalyticsData(DEMO.dailyData);
   analyticsChart.update();
 }
