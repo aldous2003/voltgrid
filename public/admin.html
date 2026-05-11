@@ -389,7 +389,7 @@
             <button class="table-action-btn" onclick="openChangePinModal(${user.room}, '${user.displayName}')">
               🔑 Change PIN
             </button>
-            <button class="table-action-btn danger" onclick="deleteRoomHandler(${user.room}, '${user.displayName}')">
+            <button class="table-action-btn danger" onclick="deleteRoomHandler(event, ${user.room}, '${user.displayName}')">
               🗑 Delete
             </button>
           </td>
@@ -398,17 +398,29 @@
       });
     }
 
-    function deleteRoomHandler(roomId, displayName) {
-      if (confirm(`Are you sure you want to permanently delete ${displayName} (Room ${roomId})?\nThis action cannot be undone.`)) {
-        VoltAuth.deleteRoom(roomId);
-        loadRoomUsersTable();
-        if (typeof reloadDashboardRooms === 'function') {
-          reloadDashboardRooms();
+    function deleteRoomHandler(event, roomId, displayName) {
+      VoltAuth.confirm(
+        "Delete Room",
+        `Are you sure you want to permanently delete Room ${roomId}? This action cannot be undone.`,
+        "Delete Room",
+        async () => {
+          const row = event.target.closest('tr');
+          if (row) {
+            row.classList.add('row-deleting');
+            // Wait for animation to finish
+            await new Promise(resolve => setTimeout(resolve, 400));
+          }
+
+          VoltAuth.deleteRoom(roomId);
+          loadRoomUsersTable();
+          if (typeof reloadDashboardRooms === 'function') {
+            reloadDashboardRooms();
+          }
+          if (typeof addEventToLog === 'function') {
+            addEventToLog({ type: 'warn', message: `Room ${roomId} was deleted by Admin`, timestamp: Date.now() });
+          }
         }
-        if (typeof addEventToLog === 'function') {
-          addEventToLog({ type: 'warn', message: `Room ${roomId} was deleted by Admin`, timestamp: Date.now() });
-        }
-      }
+      );
     }
 
     // ── Credit Management Table ──────────────────────────
@@ -578,14 +590,19 @@
 
       // Reset to defaults
       document.getElementById('btn-reset-defaults').addEventListener('click', () => {
-        if (confirm('This will reset ALL accounts to factory defaults. Are you sure?')) {
-          VoltAuth.resetToDefaults();
-          VoltAuth.initUsers().then(() => {
-            loadRoomUsersTable();
-            alert('All credentials have been reset to defaults. Please log in again.');
-            VoltAuth.logout();
-          });
-        }
+        VoltAuth.confirm(
+          "Reset System",
+          "This will reset ALL accounts and room configurations to factory defaults. This action cannot be undone.",
+          "Reset Everything",
+          () => {
+            VoltAuth.resetToDefaults();
+            VoltAuth.initUsers().then(() => {
+              loadRoomUsersTable();
+              alert('All credentials have been reset to defaults. Please log in again.');
+              VoltAuth.logout(false); // Logout without another confirm
+            });
+          }
+        );
       });
       // Add Room
       document.getElementById('btn-add-room').addEventListener('click', async () => {

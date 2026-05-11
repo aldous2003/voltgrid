@@ -544,6 +544,7 @@ const VoltAuth = (() => {
     changeRoomPin,
     changeAdminPassword,
     addRoomUser,
+    confirm: showConfirmModal,
     resetToDefaults,
     logEvent,
     getLogs
