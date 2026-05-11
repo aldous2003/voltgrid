@@ -416,6 +416,7 @@
 
           VoltAuth.deleteRoom(roomId);
           loadRoomUsersTable();
+          loadCreditManagementTable();
           if (typeof reloadDashboardRooms === 'function') {
             reloadDashboardRooms();
           }
@@ -427,7 +428,7 @@
     }
 
     // ── Credit Management Table ──────────────────────────
-    function loadCreditManagementTable() {
+    function loadCreditManagementTable(highlightRoomId = null) {
       const tbody = document.getElementById('credit-management-tbody');
       if (!tbody) return;
       tbody.innerHTML = '';
@@ -435,6 +436,9 @@
       const rooms = typeof VoltAuth !== 'undefined' ? VoltAuth.getRoomConfigs() : [];
       rooms.forEach(room => {
         const tr = document.createElement('tr');
+        if (highlightRoomId && room.id === highlightRoomId) {
+          tr.classList.add('row-appearing');
+        }
         tr.innerHTML = `
           <td><span class="room-badge">Room ${room.id}</span></td>
           <td><code class="username-code" style="color: ${room.credit < 20 ? 'var(--red)' : 'var(--green)'}">₱ ${Number(room.credit).toFixed(2)}</code></td>
@@ -621,8 +625,9 @@
             const result = await VoltAuth.addRoom();
             if (result.success) {
               const roomId = result.roomId;
-              // Refresh table with entrance animation
+              // Refresh tables with entrance animation
               loadRoomUsersTable(roomId);
+              loadCreditManagementTable(roomId);
               // Reload dashboard rooms (live room cards + charts)
               if (typeof reloadDashboardRooms === 'function') {
                 reloadDashboardRooms();
