@@ -303,6 +303,17 @@ function updateTelemetry(data) {
     btnOff.className = `src-btn ${!DEMO.solarRelay ? 'active-off' : ''}`;
   }
 
+  const gridLiveBadge = document.getElementById("grid-live-badge");
+  if (gridLiveBadge) {
+    gridLiveBadge.className = `source-state-badge ${DEMO.solarRelay ? 'source-state-live' : 'source-state-on'}`;
+  }
+  const gridCard = document.getElementById("tc-grid");
+  if (gridCard) {
+    const gridShouldLight = !DEMO.solarRelay;
+    gridCard.classList.toggle("source-lit", gridShouldLight);
+    gridCard.classList.toggle("source-dim", !gridShouldLight);
+  }
+
   // increment counter
   updateCount++;
   const uc = document.getElementById("update-count");
