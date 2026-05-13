@@ -360,31 +360,90 @@ const INITIAL_EVENTS = [
 ];
 
 function formatEventTime(ts) {
-  return new Date(ts).toLocaleTimeString("en-US", { hour12: false });
+  return new Date(ts).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
 }
 
-function renderEventToDOM(event) {
-  const log = document.getElementById("event-log");
-  if (!log) return;
+function formatEventDateTime(ts) {
+  const dateStr = new Date(ts).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric"
+  });
+  return `${dateStr} • ${formatEventTime(ts)}`;
+}
 
-  // If we're a user, only show our own logs and system logs
-  if (!IS_ADMIN && event.roomId !== null && event.roomId !== USER_ROOM) return;
-
+function buildEventElement(event) {
   const el = document.createElement("div");
   el.className = `event-item ev-${event.type.replace("_", "-")}`;
   el.innerHTML = `
     <span class="event-icon">${EVENT_ICON_MAP[event.type] || "ℹ️"}</span>
     <div class="event-body">
       <div class="event-msg">${event.message}</div>
-      <div class="event-time">${formatEventTime(event.timestamp)}</div>
+      <div class="event-time">${formatEventDateTime(event.timestamp)}</div>
+      <div class="event-details">
+        <div>Type: ${event.type}</div>
+        <div>Room: ${event.roomId === null || event.roomId === undefined ? "System" : `Room ${event.roomId}`}</div>
+        <div>Date: ${formatEventDateTime(event.timestamp)}</div>
+      </div>
     </div>
   `;
+  return el;
+}
 
-  // prepend new events
-  log.insertBefore(el, log.firstChild);
+function renderEventToDOM(event) {
+  const log = document.getElementById("event-log");
+  const previewLog = document.getElementById("event-log-preview");
+  if (!log && !previewLog) return;
 
-  // keep max 100 events in DOM
-  while (log.children.length > 100) log.removeChild(log.lastChild);
+  // If we're a user, only show our own logs and system logs
+  if (!IS_ADMIN && event.roomId !== null && event.roomId !== USER_ROOM) return;
+
+  if (log) {
+    log.insertBefore(buildEventElement(event), log.firstChild);
+    while (log.children.length > 100) log.removeChild(log.lastChild);
+  }
+  if (previewLog) {
+    previewLog.insertBefore(buildEventElement(event), previewLog.firstChild);
+    while (previewLog.children.length > 12) previewLog.removeChild(previewLog.lastChild);
+  }
+}
+
+function initTransactionLogToggle() {
+  const toggleBtn = document.getElementById("tx-log-toggle");
+  const closeBtn = document.getElementById("tx-log-close");
+  const overlay = document.getElementById("tx-log-overlay");
+  const logWrap = document.getElementById("event-log-wrap");
+  if (!toggleBtn || !closeBtn || !overlay || !logWrap) return;
+
+  const openOverlay = () => {
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+    toggleBtn.setAttribute("aria-expanded", "true");
+    document.body.classList.add("modal-open");
+  };
+
+  const closeOverlay = () => {
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden", "true");
+    toggleBtn.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("modal-open");
+  };
+
+  toggleBtn.addEventListener("click", openOverlay);
+  closeBtn.addEventListener("click", closeOverlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeOverlay();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.classList.contains("open")) {
+      closeOverlay();
+    }
+  });
 }
 
 function addEventToLog(event) {
@@ -640,6 +699,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial event log (admin only — user.html has no event-log element)
   if (document.getElementById("event-log")) {
+    initTransactionLogToggle();
     loadInitialEvents();
   }
 

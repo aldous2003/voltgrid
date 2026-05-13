@@ -60,6 +60,10 @@ body {
   min-height: 100vh;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 a {
   text-decoration: none;
   color: inherit;
@@ -1168,10 +1172,11 @@ img {
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  height: 360px;
+  height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 0 12px rgba(0, 180, 255, 0.14);
 }
 
 .event-log {
@@ -1181,6 +1186,15 @@ img {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.event-log-preview-wrap {
+  height: 320px;
+  margin-top: 2px;
+}
+
+.event-log-preview .event-item {
+  padding: 7px 9px;
 }
 
 .event-log::-webkit-scrollbar {
@@ -1202,6 +1216,7 @@ img {
   border-left: 3px solid var(--border2);
   font-size: 12px;
   animation: slideIn 0.3s ease;
+  transition: border-color 0.2s, background 0.2s;
 }
 
 @keyframes slideIn {
@@ -1255,7 +1270,97 @@ img {
   font-family: var(--mono);
   font-size: 10px;
   color: var(--text3);
-  margin-top: 2px;
+  margin-top: 3px;
+  letter-spacing: 0.2px;
+}
+
+.event-details { display: none; }
+
+.tx-log-toggle {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0;
+  cursor: pointer;
+  transform-origin: left center;
+  transition: color 0.18s ease, text-shadow 0.18s ease, transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.tx-log-toggle:hover {
+  color: var(--accent);
+  background: rgba(0, 180, 255, 0.12);
+  border-color: rgba(0, 180, 255, 0.36);
+  text-shadow: 0 0 14px rgba(0, 180, 255, 0.65), 0 0 26px rgba(0, 180, 255, 0.35);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 180, 255, 0.22),
+    0 0 0 2px rgba(0, 180, 255, 0.26),
+    0 0 22px rgba(0, 180, 255, 0.2);
+  transform: none;
+}
+
+.tx-log-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 16, 0.78);
+  backdrop-filter: blur(2px);
+  z-index: 1200;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.22s ease, visibility 0.22s ease;
+}
+
+.tx-log-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.tx-log-panel {
+  width: min(1020px, calc(100vw - 48px));
+  height: min(82vh, 760px);
+  margin: 56px auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transform: translateY(12px) scale(0.985);
+  transition: transform 0.24s ease;
+}
+
+.tx-log-overlay.open .tx-log-panel {
+  transform: translateY(0) scale(1);
+}
+
+.tx-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tx-log-close {
+  border: 1px solid var(--border2);
+  background: var(--bg2);
+  color: var(--text2);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tx-log-close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ── CHARTS GRID ── */

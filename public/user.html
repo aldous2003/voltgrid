@@ -209,10 +209,24 @@
     </div>
 
     <!-- ── TRANSACTION LOGS ── -->
-    <div class="dash-section-label">📋 TRANSACTION LOGS</div>
-    <div class="event-log-wrap">
-      <div class="event-log" id="event-log">
-        <!-- Populated by JS -->
+    <button class="dash-section-label tx-log-toggle" id="tx-log-toggle" type="button" aria-expanded="false">📋 TRANSACTION LOGS</button>
+    <div class="event-log-wrap event-log-preview-wrap" id="event-log-preview-wrap">
+      <div class="event-log event-log-preview" id="event-log-preview">
+        <!-- Preview populated by JS -->
+      </div>
+    </div>
+
+    <div class="tx-log-overlay" id="tx-log-overlay" aria-hidden="true">
+      <div class="tx-log-panel" role="dialog" aria-modal="true" aria-labelledby="tx-log-title">
+        <div class="tx-log-header">
+          <div class="dash-section-label" id="tx-log-title">📋 TRANSACTION LOGS</div>
+          <button class="tx-log-close" id="tx-log-close" type="button" aria-label="Close transaction log">✕</button>
+        </div>
+        <div class="event-log-wrap" id="event-log-wrap">
+          <div class="event-log" id="event-log">
+            <!-- Populated by JS -->
+          </div>
+        </div>
       </div>
     </div>
 
