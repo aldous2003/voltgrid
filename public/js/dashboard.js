@@ -121,19 +121,32 @@ function buildDailyFromArchive(rooms) {
     const days = Object.keys(archive).sort().slice(-7);
     if (days.length === 0) return null;
     const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    return days.map(date => {
-      // Use noon time to avoid timezone-shift off-by-one errors
-      const dayName = DAY_NAMES[new Date(date + "T12:00:00").getDay()];
-      const entry = { label: dayName, _archive: archive[date].hourly };
-      rooms.forEach(r => { entry[`room${r.id}`] = archive[date][`room${r.id}`] || 0; });
-      return entry;
-    });
+    const results = [];
+    const now = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().slice(0, 10);
+      const dayName = DAY_NAMES[d.getDay()];
+
+      const entry = { label: dayName };
+      if (archive[dateStr]) {
+        rooms.forEach(r => { entry[`room${r.id}`] = archive[dateStr][`room${r.id}`] || 0; });
+        entry._archive = archive[dateStr].hourly;
+      } else {
+        rooms.forEach(r => { entry[`room${r.id}`] = 0; });
+      }
+      results.push(entry);
+    }
+    return results;
   } catch { return null; }
 }
 
 // ── Generate demo analytics data for a set of rooms ──────
 function generateDemoAnalytics(rooms) {
   const dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
   const weekLabels = ["Week 1", "Week 2", "Week 3", "Week 4"];
   const monthLabels = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"];
@@ -168,8 +181,15 @@ const DEMO = {
   frequency: 60.0,
   powerFactor: 0.99,
   relay: true,
+  solarRelay: true,
   selectedRoom: 1,
-  rooms: []
+  rooms: [],
+  solar: 450,
+  solarVoltage: 220.0,
+  solarEnergy: 5.24,
+  grid: 617,
+  gridVoltage: 220.0,
+  gridEnergy: 7.20
 };
 
 // Initialize rooms and analytics from stored configs
@@ -201,7 +221,9 @@ const T_MAX = {
   power: 4400,
   energy: 100,
   frequency: 70,
-  powerFactor: 1
+  powerFactor: 1,
+  solar: 2000,
+  grid: 4400
 };
 
 // ── Utility: small random fluctuation ───────────────────
@@ -211,21 +233,33 @@ function fluctuate(base, range) {
 
 // ── Telemetry updater ────────────────────────────────────
 function updateTelemetry(data) {
-  const fields = ["voltage", "current", "power", "energy", "freq", "pf"];
+  const fields = ["voltage", "current", "power", "energy", "freq", "pf", "solar", "solar-v", "solar-e", "grid", "grid-v", "grid-e"];
   const vals = {
     voltage: data.voltage,
     current: data.current,
     power: data.power,
     energy: data.energy,
     freq: data.frequency,
-    pf: data.powerFactor
+    pf: data.powerFactor,
+    solar: data.solar,
+    "solar-v": data.solarVoltage,
+    "solar-e": data.solarEnergy,
+    grid: data.grid,
+    "grid-v": data.gridVoltage,
+    "grid-e": data.gridEnergy
   };
 
   for (const key of fields) {
     const el = document.getElementById(`t-${key}`);
     if (!el) continue;
     const newVal = Number(vals[key]);
-    el.textContent = key === "power" ? Math.round(newVal) : newVal.toFixed(key === "pf" ? 2 : 2);
+    if (key.includes("power") || key === "solar" || key === "grid") {
+      el.textContent = Math.round(newVal);
+    } else if (key.includes("-e") || key === "energy") {
+      el.textContent = newVal.toFixed(2);
+    } else {
+      el.textContent = newVal.toFixed(key === "pf" ? 2 : 1);
+    }
 
     // flash animation
     const card = el.closest(".t-card");
@@ -242,11 +276,31 @@ function updateTelemetry(data) {
     "bar-power": data.power / T_MAX.power,
     "bar-energy": (data.energy % 10) / 10,
     "bar-freq": data.frequency / T_MAX.frequency,
-    "bar-pf": data.powerFactor / T_MAX.powerFactor
+    "bar-pf": data.powerFactor / T_MAX.powerFactor,
+    "bar-solar": data.solar / T_MAX.solar,
+    "bar-grid": data.grid / T_MAX.grid
   };
   for (const [id, ratio] of Object.entries(barKeys)) {
     const bar = document.getElementById(id);
     if (bar) bar.style.width = Math.min(100, Math.max(0, ratio * 100)).toFixed(1) + "%";
+  }
+
+  // Update solar relay indicator and buttons
+  const solarDot = document.getElementById("solar-relay-dot");
+  if (solarDot) {
+    solarDot.className = `source-state-badge ${DEMO.solarRelay ? 'source-state-on' : 'source-state-off'}`;
+    solarDot.textContent = DEMO.solarRelay ? 'RELAY ON' : 'RELAY OFF';
+    const solarCard = document.getElementById("tc-solar");
+    if (solarCard) {
+      solarCard.classList.toggle("relay-on", DEMO.solarRelay);
+      solarCard.classList.toggle("relay-off", !DEMO.solarRelay);
+    }
+  }
+  const btnOn = document.getElementById("solar-btn-on");
+  const btnOff = document.getElementById("solar-btn-off");
+  if (btnOn && btnOff) {
+    btnOn.className = `src-btn ${DEMO.solarRelay ? 'active-on' : ''}`;
+    btnOff.className = `src-btn ${!DEMO.solarRelay ? 'active-off' : ''}`;
   }
 
   // increment counter
@@ -379,16 +433,32 @@ function runDemoSimulation() {
   DEMO.frequency = fluctuate(60, 0.3);
   DEMO.powerFactor = Math.min(1, fluctuate(0.99, 0.04));
 
+  // Solar / Grid Simulation
+  if (DEMO.solarRelay) {
+    DEMO.solar = fluctuate(450, 40);
+    DEMO.solarVoltage = fluctuate(220, 2);
+    DEMO.solarEnergy = +(DEMO.solarEnergy + DEMO.solar / 3600000).toFixed(6);
+  } else {
+    DEMO.solar = 0;
+    DEMO.solarVoltage = 0;
+  }
+
+  DEMO.grid = Math.max(0, +(DEMO.power - DEMO.solar).toFixed(1));
+  DEMO.gridVoltage = DEMO.voltage; // Grid matches main voltage
+  DEMO.gridEnergy = +(DEMO.gridEnergy + DEMO.grid / 3600000).toFixed(6);
+
   // Simulate all rooms dynamically
   DEMO.rooms.forEach((room, i) => {
     if (i === 0) {
       // Room 1: active with power draw
       room.power = DEMO.power;
+      room.voltage = DEMO.voltage;
       room.credit = Math.max(0, +(room.credit - DEMO.power / 3600 / 10).toFixed(4));
       room.remainingKwh = Math.max(0, +(room.credit / 10.75).toFixed(4));
       room.totalEnergy = DEMO.energy;
     } else {
       // Other rooms: slow credit drain
+      room.voltage = DEMO.voltage;
       room.credit = Math.max(0, +(room.credit - 0.001).toFixed(4));
       room.remainingKwh = Math.max(0, +(room.credit / 10.75).toFixed(4));
     }
@@ -408,7 +478,13 @@ function runDemoSimulation() {
     power: DEMO.power,
     energy: DEMO.energy,
     frequency: DEMO.frequency,
-    powerFactor: DEMO.powerFactor
+    powerFactor: DEMO.powerFactor,
+    solar: DEMO.solar,
+    solarVoltage: DEMO.solarVoltage,
+    solarEnergy: DEMO.solarEnergy,
+    grid: DEMO.grid,
+    gridVoltage: DEMO.gridVoltage,
+    gridEnergy: DEMO.gridEnergy
   });
   updateAllRooms(DEMO.rooms);
   StatusIndicator.markDataReceived();
@@ -531,7 +607,18 @@ window.adminSetRelay = function (roomId, state) {
   return true;
 };
 
-// ── Init ─────────────────────────────────────────────────
+// ── Solar Relay Control ──────────────────────────────────
+window.handleSolarRelay = function (state) {
+  DEMO.solarRelay = state;
+  addEventToLog({
+    type: state ? "relay_on" : "relay_off",
+    message: `Solar Source Override: ${state ? 'ENABLED' : 'DISABLED'}`,
+    roomId: null
+  });
+  return true;
+};
+
+// ── Initialise ─────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   // Init charts (role-aware via charts.js)
   initDailyChart(DEMO.hourlyData.hours);

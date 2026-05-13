@@ -32,8 +32,8 @@ function updateRoomCard(room) {
   // Relay state class
   card.className = "room-card";
   if (room.credit < 20) card.classList.add("low-credit");
-  else if (room.relay)   card.classList.add("relay-on");
-  else                   card.classList.add("relay-off");
+  else if (room.relay) card.classList.add("relay-on");
+  else card.classList.add("relay-off");
 }
 
 /**
@@ -42,11 +42,11 @@ function updateRoomCard(room) {
  * @returns {string}
  */
 function buildRoomCardHTML(room) {
-  const creditPct   = Math.min(100, Math.max(0, (room.credit / 200) * 100));
-  const barClass    = creditPct > 50 ? "high" : creditPct > 20 ? "mid" : "low";
-  const relayClass  = room.relay ? "relay-on-badge"  : "relay-off-badge";
-  const relayText   = room.relay ? "● RELAY ON" : "○ RELAY OFF";
-  const creditWarn  = room.credit < 20 ? " warn" : "";
+  const creditPct = Math.min(100, Math.max(0, (room.credit / 200) * 100));
+  const barClass = creditPct > 50 ? "high" : creditPct > 20 ? "mid" : "low";
+  const relayClass = room.relay ? "relay-on-badge" : "relay-off-badge";
+  const relayText = room.relay ? "● RELAY ON" : "○ RELAY OFF";
+  const creditWarn = room.credit < 20 ? " warn" : "";
 
   return `
     <div class="room-header">
@@ -66,6 +66,10 @@ function buildRoomCardHTML(room) {
         <span class="rsr-val">${Number(room.remainingKwh).toFixed(3)} kWh</span>
       </div>
       <div class="room-stat-row">
+        <span class="rsr-label">Line Voltage</span>
+        <span class="rsr-val">${room.voltage ? Number(room.voltage).toFixed(1) + " V" : "220.0 V"}</span>
+      </div>
+      <div class="room-stat-row">
         <span class="rsr-label">Current Power</span>
         <span class="rsr-val">${room.relay ? Number(room.power).toFixed(1) + " W" : "— W"}</span>
       </div>
@@ -74,5 +78,12 @@ function buildRoomCardHTML(room) {
         <span class="rsr-val">${Number(room.totalEnergy).toFixed(3)} kWh</span>
       </div>
     </div>
+    ${IS_ADMIN ? `
+    <div class="room-admin-ctrl">
+      <button class="ctrl-btn ${room.relay ? 'off' : 'on'}" onclick="handleSetRelay(${room.id}, ${!room.relay})">
+        ${room.relay ? '🔌 FORCE OFF' : '⚡ FORCE ON'}
+      </button>
+    </div>
+    ` : ''}
   `;
 }
