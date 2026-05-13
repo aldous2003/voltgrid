@@ -111,67 +111,6 @@
 
     </div>
 
-    <!-- ── SOURCE MONITORING ── -->
-    <div class="dash-section-label">🔌 SOURCE MONITORING</div>
-    <div class="source-grid">
-      <div class="room-card source-card relay-on" id="tc-solar">
-        <div class="source-head">
-          <div class="source-title-wrap">
-            <span class="source-title">Solar Generation</span>
-            <span class="source-subtitle">Primary renewable feed</span>
-          </div>
-          <span id="solar-relay-dot" class="source-state-badge source-state-on">RELAY ON</span>
-        </div>
-        <div class="source-body">
-          <div class="source-row">
-            <span class="source-key">Line Voltage</span>
-            <span class="source-value"><span id="t-solar-v">—</span> V</span>
-          </div>
-          <div class="source-row">
-            <span class="source-key">Current Power</span>
-            <span class="source-value source-value-strong"><span id="t-solar">—</span> W</span>
-          </div>
-          <div class="source-bar-wrap">
-            <div class="source-bar source-bar-solar" id="bar-solar"></div>
-          </div>
-          <div class="source-row">
-            <span class="source-key">Total Energy Used</span>
-            <span class="source-value"><span id="t-solar-e">—</span> kWh</span>
-          </div>
-        </div>
-        <div class="source-control-btns">
-          <button id="solar-btn-on" class="src-btn" onclick="handleSolarRelay(true)">Force ON</button>
-          <button id="solar-btn-off" class="src-btn" onclick="handleSolarRelay(false)">Force OFF</button>
-        </div>
-      </div>
-      <div class="room-card source-card relay-on" id="tc-grid">
-        <div class="source-head">
-          <div class="source-title-wrap">
-            <span class="source-title">Grid Consumption</span>
-            <span class="source-subtitle">Secondary utility feed</span>
-          </div>
-          <span id="grid-live-badge" class="source-state-badge source-state-live">LIVE</span>
-        </div>
-        <div class="source-body">
-          <div class="source-row">
-            <span class="source-key">Line Voltage</span>
-            <span class="source-value"><span id="t-grid-v">—</span> V</span>
-          </div>
-          <div class="source-row">
-            <span class="source-key">Current Power</span>
-            <span class="source-value source-value-strong"><span id="t-grid">—</span> W</span>
-          </div>
-          <div class="source-bar-wrap">
-            <div class="source-bar source-bar-grid" id="bar-grid"></div>
-          </div>
-          <div class="source-row">
-            <span class="source-key">Total Energy Used</span>
-            <span class="source-value"><span id="t-grid-e">—</span> kWh</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- ── ROOM CARD (single room) ── -->
     <div class="dash-section-label">🏠 MY ROOM STATUS</div>
     <div class="room-grid user-room-grid" id="room-grid">
