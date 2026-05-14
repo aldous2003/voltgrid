@@ -289,7 +289,6 @@
               <tr>
                 <th>Room</th>
                 <th>Balance</th>
-                <th>Voltage</th>
                 <th>Adjust Credit</th>
                 <th>Override</th>
               </tr>
@@ -518,7 +517,6 @@
         tr.innerHTML = `
           <td><span class="room-badge">Room ${room.id}</span></td>
           <td><code class="username-code" style="color: ${room.credit < 20 ? 'var(--red)' : 'var(--green)'}">₱ ${Number(room.credit).toFixed(2)}</code></td>
-          <td><code class="username-code" style="color: var(--accent)">${room.voltage ? Number(room.voltage).toFixed(1) : '220.0'} V</code></td>
           <td style="display: flex; gap: 8px; align-items: center;">
             <input type="number" id="credit-input-${room.id}" class="form-input" style="width: 80px; padding: 4px; font-size: 11px;" placeholder="Amount" step="10">
             <button class="table-action-btn" onclick="handleAddCredit(${room.id})">Add</button>
