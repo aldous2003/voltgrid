@@ -17,7 +17,7 @@
 // ── Shared Chart Theme ───────────────────────────────────
 Chart.defaults.color = "#8ba3c7";
 Chart.defaults.borderColor = "#1e3358";
-Chart.defaults.font.family = "'Space Mono', monospace";
+Chart.defaults.font.family = "'Calibri', 'Trebuchet MS', 'Segoe UI', Arial, sans-serif";
 Chart.defaults.font.size = 11;
 
 // ── Color palette for room datasets ──────────────────────

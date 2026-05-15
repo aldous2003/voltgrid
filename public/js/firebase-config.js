@@ -79,7 +79,7 @@ let FIREBASE_READY = false;
       firebase.initializeApp(FIREBASE_CONFIG);
       db = firebase.database();
       FIREBASE_READY = true;
-      console.info("[VoltGrid] Firebase connected ✓");
+      console.info("[VoltGrid] Firebase connected");
     }
   } catch (err) {
     console.error("[VoltGrid] Firebase init failed:", err);

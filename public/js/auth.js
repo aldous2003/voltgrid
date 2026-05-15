@@ -171,7 +171,7 @@ const VoltAuth = (() => {
     overlay.innerHTML = `
       <div class="modal-card" style="max-width: 380px;">
         <div class="modal-header">
-          <h2 class="modal-title">⚡ ${title}</h2>
+          <h2 class="modal-title">${title}</h2>
         </div>
         <div class="modal-body" style="gap: 20px;">
           <p style="color: var(--text2); font-size: 14px; line-height: 1.5; text-align: center; margin: 10px 0;">

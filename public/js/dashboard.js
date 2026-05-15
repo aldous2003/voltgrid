@@ -344,11 +344,11 @@ function updateAllRooms(rooms) {
 
 // ── Event Log ────────────────────────────────────────────
 const EVENT_ICON_MAP = {
-  "relay_on": "🟢",
-  "relay_off": "🔴",
-  "credit": "💰",
-  "login": "🔑",
-  "warn": "⚠️"
+  "relay_on": "ON",
+  "relay_off": "OFF",
+  "credit": "CR",
+  "login": "LOG",
+  "warn": "WARN"
 };
 
 const INITIAL_EVENTS = [
@@ -374,14 +374,14 @@ function formatEventDateTime(ts) {
     day: "2-digit",
     year: "numeric"
   });
-  return `${dateStr} • ${formatEventTime(ts)}`;
+  return `${dateStr} - ${formatEventTime(ts)}`;
 }
 
 function buildEventElement(event) {
   const el = document.createElement("div");
   el.className = `event-item ev-${event.type.replace("_", "-")}`;
   el.innerHTML = `
-    <span class="event-icon">${EVENT_ICON_MAP[event.type] || "ℹ️"}</span>
+    <span class="event-icon">${EVENT_ICON_MAP[event.type] || "INFO"}</span>
     <div class="event-body">
       <div class="event-msg">${event.message}</div>
       <div class="event-time">${formatEventDateTime(event.timestamp)}</div>

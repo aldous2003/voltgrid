@@ -5,37 +5,37 @@
 
 /* ── CSS Variables ── */
 :root {
-  --bg: #060d1a;
-  --bg2: #0a1628;
-  --bg3: #0f1f38;
-  --surface: #0e1c33;
-  --surface2: #152845;
-  --border: #1e3358;
-  --border2: #253e65;
+  --bg: #0f1724;
+  --bg2: #121d2f;
+  --bg3: #18263d;
+  --surface: #16253b;
+  --surface2: #1d2f4b;
+  --border: #2a3d5b;
+  --border2: #31486b;
 
-  --text: #e8f0fe;
-  --text2: #8ba3c7;
-  --text3: #4d6a96;
+  --text: #e6edf8;
+  --text2: #9fb0c9;
+  --text3: #6f84a4;
 
-  --green: #00e676;
-  --green-dim: #00e67622;
-  --red: #ff3d3d;
-  --red-dim: #ff3d3d22;
-  --yellow: #ffc107;
-  --yellow-dim: #ffc10722;
-  --blue: #4fc3f7;
-  --blue-dim: #4fc3f722;
-  --accent: #00b4ff;
-  --accent2: #0070cc;
+  --green: #2fbf71;
+  --green-dim: #2fbf7122;
+  --red: #d94b4b;
+  --red-dim: #d94b4b22;
+  --yellow: #d9a441;
+  --yellow-dim: #d9a44122;
+  --blue: #5aa9e6;
+  --blue-dim: #5aa9e622;
+  --accent: #2d89d8;
+  --accent2: #236fb0;
 
-  --mono: 'Space Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
+  --mono: "Lucida Console", "Courier New", monospace;
+  --sans: "Calibri", "Trebuchet MS", "Segoe UI", Arial, sans-serif;
 
   --radius: 8px;
   --radius-lg: 14px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --glow-green: 0 0 12px rgba(0, 230, 118, 0.35);
-  --glow-blue: 0 0 16px rgba(0, 180, 255, 0.25);
+  --shadow: 0 10px 24px rgba(1, 8, 20, 0.3);
+  --glow-green: 0 0 10px rgba(47, 191, 113, 0.25);
+  --glow-blue: 0 0 12px rgba(45, 137, 216, 0.2);
 }
 
 /* ── Reset ── */
@@ -104,11 +104,22 @@ img {
   font-family: var(--mono);
   font-weight: 700;
   font-size: 15px;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
 }
 
 .logo-icon {
-  font-size: 18px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(45, 137, 216, 0.35);
+  background: rgba(45, 137, 216, 0.14);
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
 }
 
 .logo-accent {
@@ -766,7 +777,7 @@ img {
 .dash-section-label {
   font-family: var(--mono);
   font-size: 11px;
-  letter-spacing: 2px;
+  letter-spacing: 1.2px;
   color: var(--accent);
   text-transform: uppercase;
   margin: 32px 0 12px;
@@ -1252,9 +1263,18 @@ img {
 }
 
 .event-icon {
-  font-size: 14px;
+  min-width: 44px;
+  text-align: center;
+  padding: 2px 8px;
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--text2);
+  text-transform: uppercase;
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .event-body {
@@ -1287,9 +1307,9 @@ img {
 
 .tx-log-toggle:hover {
   color: var(--accent);
-  text-shadow: 0 0 14px rgba(0, 180, 255, 0.8), 0 0 24px rgba(0, 180, 255, 0.45);
-  transform: translateX(2px);
-  animation: txLogGlowPulse 0.9s ease-in-out infinite;
+  text-shadow: none;
+  transform: none;
+  animation: none;
 }
 
 @keyframes txLogGlowPulse {
@@ -1618,16 +1638,27 @@ img {
 }
 
 .login-logo-icon {
-  font-size: 48px;
-  margin-bottom: 8px;
-  filter: drop-shadow(0 0 20px rgba(0, 180, 255, 0.4));
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(45, 137, 216, 0.35);
+  background: rgba(45, 137, 216, 0.14);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  filter: none;
 }
 
 .login-logo-text {
   font-family: var(--mono);
   font-size: 28px;
   font-weight: 700;
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   color: var(--text);
 }
 
@@ -1764,10 +1795,15 @@ img {
 }
 
 .form-input-icon {
-  font-size: 15px;
+  min-width: 12px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   margin-right: 10px;
   flex-shrink: 0;
-  opacity: 0.7;
+  color: var(--text2);
+  opacity: 1;
 }
 
 .form-input {
@@ -1799,18 +1835,22 @@ img {
 }
 
 .password-toggle {
-  background: none;
-  border: none;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 15px;
-  padding: 4px;
-  opacity: 0.5;
-  transition: opacity 0.2s;
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 7px;
+  opacity: 1;
+  transition: all 0.2s;
   flex-shrink: 0;
 }
 
 .password-toggle:hover {
-  opacity: 0.9;
+  color: var(--text);
+  border-color: var(--accent);
 }
 
 /* ── Login Button ── */
@@ -1951,7 +1991,7 @@ img {
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.6px;
 }
 
 .admin-badge {
@@ -1967,7 +2007,12 @@ img {
 }
 
 .role-icon {
-  font-size: 13px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  line-height: 1;
 }
 
 .nav-right-group {
@@ -2098,7 +2143,13 @@ img {
 }
 
 .admin-card-icon {
-  font-size: 16px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 2px 5px;
+  color: var(--text2);
 }
 
 /* ── Admin Action Buttons ── */
@@ -2175,7 +2226,24 @@ img {
 .admin-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   font-size: 13px;
+}
+
+.admin-col-room {
+  width: 14%;
+}
+
+.admin-col-name {
+  width: 18%;
+}
+
+.admin-col-main {
+  width: 34%;
+}
+
+.admin-col-actions {
+  width: 34%;
 }
 
 .admin-table th {
@@ -2195,6 +2263,10 @@ img {
   border-bottom: 1px solid var(--border);
   color: var(--text);
   vertical-align: middle;
+}
+
+.admin-table td:last-child {
+  white-space: nowrap;
 }
 
 .admin-table tr:last-child td {
@@ -2243,6 +2315,24 @@ img {
   color: var(--green);
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.table-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.credit-actions-group {
+  flex-wrap: wrap;
+}
+
+.credit-input {
+  width: 84px;
+  padding: 4px 8px;
+  font-size: 11px;
+  min-height: 28px;
 }
 
 .table-action-btn:hover {

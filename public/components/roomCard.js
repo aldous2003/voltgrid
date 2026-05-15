@@ -45,7 +45,7 @@ function buildRoomCardHTML(room) {
   const creditPct = Math.min(100, Math.max(0, (room.credit / 200) * 100));
   const barClass = creditPct > 50 ? "high" : creditPct > 20 ? "mid" : "low";
   const relayClass = room.relay ? "relay-on-badge" : "relay-off-badge";
-  const relayText = room.relay ? "● RELAY ON" : "○ RELAY OFF";
+  const relayText = room.relay ? "RELAY ON" : "RELAY OFF";
   const creditWarn = room.credit < 20 ? " warn" : "";
 
   return `
@@ -81,7 +81,7 @@ function buildRoomCardHTML(room) {
     ${IS_ADMIN ? `
     <div class="room-admin-ctrl">
       <button class="ctrl-btn ${room.relay ? 'off' : 'on'}" onclick="handleSetRelay(${room.id}, ${!room.relay})">
-        ${room.relay ? '🔌 FORCE OFF' : '⚡ FORCE ON'}
+        ${room.relay ? 'FORCE OFF' : 'FORCE ON'}
       </button>
     </div>
     ` : ''}

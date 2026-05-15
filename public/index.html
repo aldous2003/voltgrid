@@ -6,10 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VoltGrid — Sign In</title>
   <meta name="description" content="Sign in to VoltGrid IoT Prepaid Electricity Monitoring System dashboard." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
-    rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css"/>
 </head>
 
@@ -25,7 +21,7 @@
 
     <!-- ── BRAND ── -->
     <div class="login-brand">
-      <div class="login-logo-icon">⚡</div>
+      <div class="login-logo-icon">VG</div>
       <div class="login-logo-text">VOLT<span class="logo-accent">GRID</span></div>
       <div class="login-tagline">IoT Prepaid Electricity Monitor</div>
     </div>
@@ -44,7 +40,7 @@
         <div class="form-group">
           <label for="login-username" class="form-label">USERNAME</label>
           <div class="form-input-wrap">
-            <span class="form-input-icon">👤</span>
+            <span class="form-input-icon">U</span>
             <input type="text" id="login-username" class="form-input" placeholder="Enter your username"
               autocomplete="username" required />
           </div>
@@ -53,11 +49,11 @@
         <div class="form-group">
           <label for="login-password" class="form-label">PASSWORD/PIN</label>
           <div class="form-input-wrap">
-            <span class="form-input-icon">🔒</span>
+            <span class="form-input-icon">P</span>
             <input type="password" id="login-password" class="form-input" placeholder="Enter your password"
               autocomplete="current-password" required />
             <button type="button" class="password-toggle" id="password-toggle" aria-label="Toggle password visibility">
-              <span id="eye-icon">👁️</span>
+              <span id="eye-icon">Show</span>
             </button>
           </div>
         </div>
@@ -82,7 +78,7 @@
 
   <!-- ── FOOTER ── -->
   <footer class="login-footer">
-    <div class="footer-logo">⚡ VOLTGRID</div>
+    <div class="footer-logo">VOLTGRID</div>
     <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase
     </div>
   </footer>
@@ -107,7 +103,7 @@
     passwordToggle.addEventListener('click', () => {
       const isPassword = passwordInput.type === 'password';
       passwordInput.type = isPassword ? 'text' : 'password';
-      eyeIcon.textContent = isPassword ? '🙈' : '👁️';
+      eyeIcon.textContent = isPassword ? 'Hide' : 'Show';
     });
 
     form.addEventListener('submit', (e) => {
@@ -130,7 +126,7 @@
           btn.classList.remove('loading');
           btn.classList.add('success');
           document.querySelector('.login-btn-text').textContent = 'Success!';
-          document.querySelector('.login-btn-arrow').textContent = '✓';
+          document.querySelector('.login-btn-arrow').textContent = 'Done';
 
           // Redirect after brief success animation
           setTimeout(() => {

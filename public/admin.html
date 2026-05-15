@@ -6,10 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VoltGrid — Admin Dashboard</title>
   <meta name="description" content="VoltGrid Admin Dashboard — monitor all rooms, telemetry, and energy analytics." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
-    rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -20,11 +16,11 @@
   <nav class="nav">
     <div class="nav-inner">
       <a href="admin.html" class="nav-logo">
-        <span class="logo-icon">⚡</span>
+        <span class="logo-icon">VG</span>
         <span class="logo-text">VOLT<span class="logo-accent">GRID</span></span>
       </a>
       <div class="nav-role-badge admin-badge" id="nav-role-badge">
-        <span class="role-icon">🛡️</span>
+        <span class="role-icon">AD</span>
         <span id="nav-role-text">Admin Dashboard</span>
       </div>
       <div class="nav-right-group">
@@ -36,7 +32,7 @@
           <span class="nav-user-name" id="nav-user-name">Admin</span>
         </div>
         <button class="nav-logout-btn" id="logout-btn" title="Sign Out">
-          <span>↪ Sign Out</span>
+          <span>Sign Out</span>
         </button>
       </div>
     </div>
@@ -67,7 +63,7 @@
     </div>
 
     <!-- ── TELEMETRY GRID ── -->
-    <div class="dash-section-label">⚡ LIVE ELECTRICAL MEASUREMENTS</div>
+    <div class="dash-section-label">LIVE ELECTRICAL MEASUREMENTS</div>
     <div class="telemetry-grid">
       <div class="t-card" id="tc-voltage">
         <div class="t-label">VOLTAGE</div>
@@ -120,7 +116,7 @@
     </div>
 
     <!-- ── SOURCE MONITORING ── -->
-    <div class="dash-section-label">🔌 SOURCE MONITORING</div>
+    <div class="dash-section-label">SOURCE MONITORING</div>
     <div class="source-grid">
       <div class="room-card source-card relay-on" id="tc-solar">
         <div class="source-head">
@@ -183,13 +179,13 @@
     <!-- ── ROOM CARDS + EVENT LOG ── -->
     <div class="mid-grid">
       <div>
-        <div class="dash-section-label">🏠 ROOM STATUS</div>
+        <div class="dash-section-label">ROOM STATUS</div>
         <div class="room-grid" id="room-grid">
           <!-- Populated by JS -->
         </div>
       </div>
       <div>
-        <button class="dash-section-label tx-log-toggle" id="tx-log-toggle" type="button" aria-expanded="false">📋 TRANSACTION LOGS</button>
+        <button class="dash-section-label tx-log-toggle" id="tx-log-toggle" type="button" aria-expanded="false">TRANSACTION LOGS</button>
         <div class="event-log-wrap event-log-preview-wrap" id="event-log-preview-wrap">
           <div class="event-log event-log-preview" id="event-log-preview">
             <!-- Preview populated by JS -->
@@ -201,8 +197,8 @@
     <div class="tx-log-overlay" id="tx-log-overlay" aria-hidden="true">
       <div class="tx-log-panel" role="dialog" aria-modal="true" aria-labelledby="tx-log-title">
         <div class="tx-log-header">
-          <div class="dash-section-label" id="tx-log-title">📋 TRANSACTION LOGS</div>
-          <button class="tx-log-close" id="tx-log-close" type="button" aria-label="Close transaction log">✕</button>
+          <div class="dash-section-label" id="tx-log-title">TRANSACTION LOGS</div>
+          <button class="tx-log-close" id="tx-log-close" type="button" aria-label="Close transaction log">X</button>
         </div>
         <div class="event-log-wrap" id="event-log-wrap">
           <div class="event-log" id="event-log">
@@ -213,7 +209,7 @@
     </div>
 
     <!-- ── CHARTS ── -->
-    <div class="dash-section-label">📈 ENERGY ANALYTICS</div>
+    <div class="dash-section-label">ENERGY ANALYTICS</div>
     <div class="charts-grid">
 
       <div class="chart-card wide">
@@ -244,14 +240,14 @@
 
 
     <!-- ── ADMIN PANEL ── -->
-    <div class="dash-section-label">🛡️ ADMIN PANEL</div>
+    <div class="dash-section-label">ADMIN PANEL</div>
     <div class="admin-panel">
 
       <!-- Room User Management -->
       <div class="admin-card">
         <div class="admin-card-header">
           <div class="admin-card-title">
-            <span class="admin-card-icon">🏠</span>
+            <span class="admin-card-icon">AC</span>
             Room Access Management
           </div>
           <button class="admin-action-btn accent" id="btn-add-room">
@@ -260,6 +256,12 @@
         </div>
         <div class="admin-table-wrap">
           <table class="admin-table" id="room-users-table">
+            <colgroup>
+              <col class="admin-col-room" />
+              <col class="admin-col-name" />
+              <col class="admin-col-main" />
+              <col class="admin-col-actions" />
+            </colgroup>
             <thead>
               <tr>
                 <th>Room</th>
@@ -279,12 +281,18 @@
       <div class="admin-card">
         <div class="admin-card-header">
           <div class="admin-card-title">
-            <span class="admin-card-icon">💰</span>
+            <span class="admin-card-icon">CM</span>
             Credit Management
           </div>
         </div>
         <div class="admin-table-wrap">
           <table class="admin-table" id="credit-management-table">
+            <colgroup>
+              <col class="admin-col-room" />
+              <col class="admin-col-name" />
+              <col class="admin-col-main" />
+              <col class="admin-col-actions" />
+            </colgroup>
             <thead>
               <tr>
                 <th>Room</th>
@@ -304,7 +312,7 @@
       <div class="admin-card">
         <div class="admin-card-header">
           <div class="admin-card-title">
-            <span class="admin-card-icon">🔐</span>
+            <span class="admin-card-icon">AS</span>
             Admin Security
           </div>
         </div>
@@ -336,8 +344,8 @@
   <div class="modal-overlay" id="modal-change-pin">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 class="modal-title">🔑 Change Room PIN</h2>
-        <button class="modal-close" id="modal-pin-close" aria-label="Close">✕</button>
+        <h2 class="modal-title">Change Room PIN</h2>
+        <button class="modal-close" id="modal-pin-close" aria-label="Close">X</button>
       </div>
       <div class="modal-body">
         <div class="modal-info" id="modal-pin-room-info">Room 1</div>
@@ -348,7 +356,7 @@
           <div class="form-group">
             <label for="pin-new" class="form-label">NEW PIN</label>
             <div class="form-input-wrap">
-              <span class="form-input-icon">🔒</span>
+              <span class="form-input-icon">P</span>
               <input type="password" id="pin-new" class="form-input" placeholder="Enter new PIN (min 4 characters)"
                 minlength="4" required />
             </div>
@@ -356,7 +364,7 @@
           <div class="form-group">
             <label for="pin-confirm" class="form-label">CONFIRM PIN</label>
             <div class="form-input-wrap">
-              <span class="form-input-icon">🔒</span>
+              <span class="form-input-icon">P</span>
               <input type="password" id="pin-confirm" class="form-input" placeholder="Confirm new PIN" minlength="4"
                 required />
             </div>
@@ -374,8 +382,8 @@
   <div class="modal-overlay" id="modal-change-admin-pw">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 class="modal-title">🔐 Change Admin Password</h2>
-        <button class="modal-close" id="modal-admin-pw-close" aria-label="Close">✕</button>
+        <h2 class="modal-title">Change Admin Password</h2>
+        <button class="modal-close" id="modal-admin-pw-close" aria-label="Close">X</button>
       </div>
       <div class="modal-body">
         <div class="modal-error" id="modal-admin-pw-error" role="alert"></div>
@@ -384,7 +392,7 @@
           <div class="form-group">
             <label for="admin-pw-current" class="form-label">CURRENT PASSWORD</label>
             <div class="form-input-wrap">
-              <span class="form-input-icon">🔒</span>
+              <span class="form-input-icon">P</span>
               <input type="password" id="admin-pw-current" class="form-input" placeholder="Enter current password"
                 required />
             </div>
@@ -392,7 +400,7 @@
           <div class="form-group">
             <label for="admin-pw-new" class="form-label">NEW PASSWORD</label>
             <div class="form-input-wrap">
-              <span class="form-input-icon">🔑</span>
+              <span class="form-input-icon">P</span>
               <input type="password" id="admin-pw-new" class="form-input"
                 placeholder="Enter new password (min 6 characters)" minlength="6" required />
             </div>
@@ -400,7 +408,7 @@
           <div class="form-group">
             <label for="admin-pw-confirm" class="form-label">CONFIRM NEW PASSWORD</label>
             <div class="form-input-wrap">
-              <span class="form-input-icon">🔑</span>
+              <span class="form-input-icon">P</span>
               <input type="password" id="admin-pw-confirm" class="form-input" placeholder="Confirm new password"
                 minlength="6" required />
             </div>
@@ -415,8 +423,8 @@
   </div>
 
   <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-logo">⚡ VOLTGRID</div>
+      <div class="footer-inner">
+      <div class="footer-logo">VOLTGRID</div>
       <div class="footer-text">IoT Prepaid Electricity Monitoring System · ESP32 + Firebase
       </div>
     </div>
@@ -463,13 +471,11 @@
           <td><span class="room-badge">Room ${user.room}</span></td>
           <td><code class="username-code">${user.username}</code></td>
           <td><code class="username-code">${user.pin || 'Unknown'}</code></td>
-          <td style="display: flex; gap: 8px;">
-            <button class="table-action-btn" onclick="openChangePinModal(${user.room}, '${user.displayName}')">
-              🔑 Change PIN
-            </button>
-            <button class="table-action-btn danger" onclick="deleteRoomHandler(event, ${user.room}, '${user.displayName}')">
-              🗑 Delete
-            </button>
+          <td>
+            <div class="table-actions-group">
+              <button class="table-action-btn" onclick="openChangePinModal(${user.room}, '${user.displayName}')">Change PIN</button>
+              <button class="table-action-btn danger" onclick="deleteRoomHandler(event, ${user.room}, '${user.displayName}')">Delete</button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -517,13 +523,15 @@
         tr.innerHTML = `
           <td><span class="room-badge">Room ${room.id}</span></td>
           <td><code class="username-code" style="color: ${room.credit < 20 ? 'var(--red)' : 'var(--green)'}">₱ ${Number(room.credit).toFixed(2)}</code></td>
-          <td style="display: flex; gap: 8px; align-items: center;">
-            <input type="number" id="credit-input-${room.id}" class="form-input" style="width: 80px; padding: 4px; font-size: 11px;" placeholder="Amount" step="10">
-            <button class="table-action-btn" onclick="handleAddCredit(${room.id})">Add</button>
-            <button class="table-action-btn danger" onclick="handleDeductCredit(${room.id})">Deduct</button>
+          <td>
+            <div class="table-actions-group credit-actions-group">
+              <input type="number" id="credit-input-${room.id}" class="form-input credit-input" placeholder="Amount" step="10">
+              <button class="table-action-btn" onclick="handleAddCredit(${room.id})">Add</button>
+              <button class="table-action-btn danger" onclick="handleDeductCredit(${room.id})">Deduct</button>
+            </div>
           </td>
           <td>
-            <div style="display: flex; gap: 8px;">
+            <div class="table-actions-group">
               <button class="table-action-btn" style="${room.relay ? 'opacity: 0.5; pointer-events: none;' : ''}" onclick="handleSetRelay(${room.id}, true)">Force ON</button>
               <button class="table-action-btn danger" style="${!room.relay ? 'opacity: 0.5; pointer-events: none;' : ''}" onclick="handleSetRelay(${room.id}, false)">Force OFF</button>
             </div>
@@ -711,7 +719,7 @@
               if (typeof addEventToLog === 'function') {
                 addEventToLog({ type: 'relay_on', message: `Room ${roomId} added — Relay ON`, timestamp: Date.now() });
               }
-              btn.querySelector('span').textContent = `✓ Room ${roomId} Added!`;
+              btn.querySelector('span').textContent = `Room ${roomId} Added!`;
               setTimeout(() => {
                 btn.querySelector('span').textContent = '+ Add Room';
                 btn.disabled = false;
