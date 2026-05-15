@@ -594,32 +594,90 @@ function runDemoSimulation() {
 
 // ── Firebase listeners (used when FIREBASE_READY = true) ─
 function attachFirebaseListeners() {
-  // Telemetry
-  listenToPath("/telemetry", data => {
-    updateTelemetry(data);
+  listenToPath("/rooms", roomsData => {
+    if (!roomsData) return;
+
+    const rooms = Object.entries(roomsData)
+      .filter(([key]) => key === "room_1" || key === "room_2")
+      .map(([key, data]) => {
+        const id = Number(key.replace("room_", ""));
+        return {
+          id,
+          name: `Room ${id}`,
+          credit: Number(data.balance || 0),
+          remainingKwh: Number(data.balance || 0) / 10,
+          relay: data.relay === "ON",
+          voltage: Number(data.voltage || 0),
+          current: Number(data.current || 0),
+          power: Number(data.power || 0),
+          totalEnergy: Number(data.energy || 0),
+          online: !!data.online
+        };
+      });
+
+    DEMO.rooms = rooms;
+    updateAllRooms(rooms);
+
+    const totalPower = rooms.reduce((sum, r) => sum + r.power, 0);
+    const avgVoltage = rooms.length
+      ? rooms.reduce((sum, r) => sum + r.voltage, 0) / rooms.length
+      : 0;
+    const totalEnergy = rooms.reduce((sum, r) => sum + r.totalEnergy, 0);
+
+    DEMO.voltage = avgVoltage;
+    DEMO.power = totalPower;
+    DEMO.energy = totalEnergy;
+
+    updateTelemetry({
+      voltage: avgVoltage,
+      current: rooms.reduce((sum, r) => sum + r.current, 0),
+      power: totalPower,
+      energy: totalEnergy,
+      frequency: 60,
+      powerFactor: 1,
+      solar: DEMO.solar || 0,
+      solarVoltage: DEMO.solarVoltage || 0,
+      solarEnergy: DEMO.solarEnergy || 0,
+      grid: totalPower,
+      gridVoltage: avgVoltage,
+      gridEnergy: totalEnergy
+    });
+
     StatusIndicator.markDataReceived();
   });
 
-  // Listen to all rooms dynamically
-  DEMO.rooms.forEach(room => {
-    listenToPath(`/rooms/room${room.id}`, data => {
-      updateRoomCard({ id: room.id, name: room.name, ...data });
+  listenToPath("/solar", solar => {
+    if (!solar) return;
+
+    DEMO.solar = Number(solar.power || 0);
+    DEMO.solarVoltage = Number(solar.voltage || 0);
+    DEMO.solarEnergy = Number(solar.energy || 0);
+    DEMO.solarRelay = solar.relay === "ON";
+
+    updateTelemetry({
+      voltage: DEMO.voltage || 0,
+      current: DEMO.current || 0,
+      power: DEMO.power || 0,
+      energy: DEMO.energy || 0,
+      frequency: 60,
+      powerFactor: 1,
+      solar: DEMO.solar,
+      solarVoltage: DEMO.solarVoltage,
+      solarEnergy: DEMO.solarEnergy,
+      grid: DEMO.power || 0,
+      gridVoltage: DEMO.voltage || 0,
+      gridEnergy: DEMO.energy || 0
     });
+
+    StatusIndicator.markDataReceived();
   });
 
-  // Events (admin only)
   if (IS_ADMIN) {
     listenToPath("/events", data => {
       if (!data) return;
-      const events = Object.values(data).slice(-1); // newest
-      events.forEach(e => addEventToLog(e));
+      Object.values(data).slice(-10).forEach(e => addEventToLog(e));
     });
   }
-
-  // Analytics (optional paths)
-  listenToPath("/analytics/daily", data => {
-    if (data) updateDailyChart(Object.values(data));
-  });
 }
 
 /**
@@ -642,22 +700,25 @@ function reloadDashboardRooms() {
 
 // ── Global Handlers for Admin Panel ──────────────────────
 window.adminUpdateCredit = function (roomId, amount) {
-  const room = DEMO.rooms.find(r => r.id === roomId);
-  if (!room) return false;
-
-  room.credit = +(room.credit + amount).toFixed(4);
-  room.remainingKwh = +(room.credit / 10.75).toFixed(4);
-
-  if (typeof VoltAuth !== 'undefined' && VoltAuth.updateRoomConfig) {
-    VoltAuth.updateRoomConfig(roomId, { credit: room.credit, remainingKwh: room.remainingKwh });
+  if (typeof writePath !== "function") {
+    alert("Firebase is not ready.");
+    return false;
   }
 
-  updateAllRooms(DEMO.rooms);
-  if (amount > 0) {
-    addEventToLog({ type: 'credit', message: `Admin topped up ₱${amount.toFixed(2)} — Room ${roomId}`, roomId });
-  } else {
-    addEventToLog({ type: 'warn', message: `Admin deducted ₱${Math.abs(amount).toFixed(2)} — Room ${roomId}`, roomId });
+  if (amount <= 0) {
+    alert("Deduct is not yet supported by ESP32 command logic.");
+    return false;
   }
+
+  writePath(`/commands/room_${roomId}/add_credit`, amount);
+
+  addEventToLog({
+    type: "credit",
+    message: `Admin sent ₱${amount.toFixed(2)} top-up command — Room ${roomId}`,
+    roomId,
+    timestamp: Date.now()
+  });
+
   return true;
 };
 
@@ -679,12 +740,20 @@ window.adminSetRelay = function (roomId, state) {
 
 // ── Solar Relay Control ──────────────────────────────────
 window.handleSolarRelay = function (state) {
-  DEMO.solarRelay = state;
+  if (typeof writePath !== "function") {
+    alert("Firebase is not ready.");
+    return false;
+  }
+
+  writePath("/commands/solar/enabled", state);
+
   addEventToLog({
     type: state ? "relay_on" : "relay_off",
-    message: `Solar Source Override: ${state ? 'ENABLED' : 'DISABLED'}`,
-    roomId: null
+    message: `Solar relay command sent: ${state ? "ON" : "OFF"}`,
+    roomId: null,
+    timestamp: Date.now()
   });
+
   return true;
 };
 
